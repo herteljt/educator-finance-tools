@@ -9,5 +9,33 @@
       "policy",
       "handbook"
     ]
+  },
+  {
+    "file": "tool-salary-analyzer.html",
+    "name": "Wisconsin Teacher Salary Analyzer",
+    "description": "Analyze and compare Wisconsin public school staff salary data from DPI, with outlier filtering, experience-based estimation, and multi-district comparison.",
+    "icon": "\ud83d\udcca",
+    "tags": [
+      "salary",
+      "education",
+      "wisconsin",
+      "data analysis",
+      "teacher"
+    ]
+  },
+  {
+    "file": "tool-wrs-retirement-estimator.html",
+    "name": "WRS Retirement Estimator",
+    "description": "Estimate Wisconsin Retirement System monthly benefits for General, Teacher, and Educational Support employees across multiple payment options and retirement ages.",
+    "icon": "\ud83c\udfdb\ufe0f",
+    "tags": [
+      "retirement",
+      "WRS",
+      "Wisconsin",
+      "pension",
+      "benefits",
+      "teacher",
+      "educator"
+    ]
   }
 ]
