@@ -1,0 +1,1012 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="tool-name" content="Wisconsin Teacher Salary Analyzer">
+<meta name="tool-description" content="Analyze and compare Wisconsin public school staff salary data from DPI, with outlier filtering, experience-based estimation, and multi-district comparison.">
+<meta name="tool-icon" content="📊">
+<meta name="tool-tags" content="salary, education, wisconsin, data analysis, teacher">
+<title>Wisconsin Teacher Salary Analyzer v1.5</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg:#fff; --bg2:#f5f5f3; --bg-blue:#e8f2fc; --bg-green:#e8f5ef; --bg-amber:#fef3e2; --bg-purple:#f0effe; --bg-red:#fdecea;
+  --text:#1a1a18; --text2:#6b6b67; --text-blue:#185fa5; --text-green:#1d6b45; --text-amber:#92600a; --text-purple:#4c3ec2; --text-red:#9b1c1c;
+  --border:rgba(0,0,0,0.11); --border2:rgba(0,0,0,0.20);
+  --blue:#378add; --green:#1d9e75; --purple:#7f77dd; --amber:#e09020; --red:#e53e3e;
+  --r:8px; --rl:12px;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:#1c1c1a; --bg2:#252522; --bg-blue:#0c2a45; --bg-green:#0a2a1a; --bg-amber:#2a1c04; --bg-purple:#1a1640; --bg-red:#2a0a0a;
+    --text:#f0f0ec; --text2:#9a9a94; --text-blue:#5da8f0; --text-green:#3dbe92; --text-amber:#e09a3a; --text-purple:#a09aed; --text-red:#fc8181;
+    --border:rgba(255,255,255,0.11); --border2:rgba(255,255,255,0.20);
+    --blue:#5da8f0; --green:#3dbe92; --purple:#a09aed; --amber:#e09020; --red:#fc8181;
+  }
+}
+body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; background:var(--bg2); color:var(--text); font-size:15px; line-height:1.6; min-height:100vh; padding:2rem 1rem; }
+.page { max-width:960px; margin:0 auto; }
+h1 { font-size:22px; font-weight:600; margin-bottom:4px; }
+.sub { font-size:13px; color:var(--text2); margin-bottom:1.5rem; }
+a { color:var(--text-blue); }
+.card { background:var(--bg); border:0.5px solid var(--border); border-radius:var(--rl); padding:1.5rem; margin-bottom:1.25rem; }
+.card-title { font-size:11px; font-weight:600; color:var(--text2); margin-bottom:1rem; text-transform:uppercase; letter-spacing:0.06em; }
+.hidden { display:none !important; }
+
+/* Tabs */
+.tabs { display:flex; gap:4px; margin-bottom:1.5rem; background:var(--bg); border:0.5px solid var(--border); border-radius:var(--rl); padding:5px; width:fit-content; }
+.tab { font-size:13px; font-weight:500; padding:7px 18px; border-radius:var(--r); border:none; background:transparent; color:var(--text2); cursor:pointer; transition:background 0.12s,color 0.12s; }
+.tab.active { background:var(--bg-blue); color:var(--text-blue); }
+.tab:hover:not(.active) { background:var(--bg2); }
+
+/* Instructions */
+.instr ol { font-size:13px; color:var(--text2); line-height:1.9; padding-left:1.2rem; }
+.instr strong { color:var(--text); font-weight:500; }
+
+/* Upload zone */
+.upload-zone { border:1.5px dashed var(--border2); border-radius:var(--rl); padding:1.5rem; text-align:center; transition:background .12s; }
+.upload-zone.over { background:var(--bg2); }
+textarea { width:100%; min-height:60px; font-size:12px; font-family:monospace; border:0.5px solid var(--border2); border-radius:var(--r); padding:8px; background:var(--bg); color:var(--text); resize:vertical; }
+.btn-row { display:flex; gap:8px; margin-top:10px; justify-content:center; flex-wrap:wrap; }
+button { font-size:13px; padding:7px 16px; border:0.5px solid var(--border2); border-radius:var(--r); background:var(--bg); color:var(--text); cursor:pointer; transition:background .1s; }
+button:hover { background:var(--bg2); }
+.btn-primary { background:var(--bg-blue); color:var(--text-blue); border-color:var(--blue); }
+.btn-danger  { background:var(--bg-red);  color:var(--text-red);  border-color:var(--red); }
+.err { color:#c0392b; font-size:13px; margin-top:8px; }
+.dbg { font-size:11px; color:var(--text2); font-family:monospace; background:var(--bg2); padding:8px; border-radius:var(--r); margin-top:8px; white-space:pre-wrap; word-break:break-all; display:none; }
+
+/* File list (compare) */
+.file-list { display:flex; flex-direction:column; gap:8px; margin-bottom:1rem; }
+.file-chip { display:flex; align-items:center; justify-content:space-between; background:var(--bg2); border-radius:var(--r); padding:8px 12px; font-size:13px; }
+.file-chip-name { display:flex; align-items:center; gap:8px; }
+.file-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+.file-chip-remove { font-size:16px; color:var(--text2); cursor:pointer; line-height:1; padding:0 2px; }
+.file-chip-remove:hover { color:var(--red); }
+
+/* Filters bar */
+.filters-bar { display:flex; flex-wrap:wrap; gap:10px; align-items:center; justify-content:space-between; margin-bottom:1.25rem; }
+.filter-group { display:flex; flex-wrap:wrap; gap:10px; align-items:center; }
+.filter-group label { font-size:13px; color:var(--text2); }
+select { font-size:13px; padding:5px 8px; border-radius:var(--r); border:0.5px solid var(--border2); background:var(--bg); color:var(--text); }
+
+/* Pills */
+.pill { display:inline-flex; align-items:center; gap:6px; font-size:12px; padding:5px 12px; border-radius:99px; border:0.5px solid var(--border2); background:var(--bg); color:var(--text2); cursor:pointer; user-select:none; transition:background .12s,color .12s,border-color .12s; white-space:nowrap; }
+.pill .pip { width:7px; height:7px; border-radius:50%; background:var(--border2); flex-shrink:0; transition:background .12s; }
+.pill.on { background:var(--bg-green); color:var(--text-green); border-color:var(--green); }
+.pill.on .pip { background:var(--green); }
+.col-toggles { display:flex; flex-wrap:wrap; gap:7px; margin-bottom:1rem; }
+
+/* ── Outlier panel ── */
+.outlier-panel { background:var(--bg); border:0.5px solid var(--border); border-radius:var(--rl); padding:1.25rem 1.5rem; margin-bottom:1.25rem; }
+.outlier-header { display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; cursor:pointer; user-select:none; }
+.outlier-header-left { display:flex; align-items:center; gap:10px; }
+.outlier-title { font-size:13px; font-weight:500; color:var(--text); }
+.outlier-summary { font-size:12px; color:var(--text2); }
+.outlier-chevron { font-size:14px; color:var(--text2); transition:transform .2s; }
+.outlier-chevron.open { transform:rotate(180deg); }
+.outlier-body { margin-top:1rem; display:flex; flex-direction:column; gap:1rem; }
+.outlier-row { display:flex; align-items:center; gap:14px; flex-wrap:wrap; }
+.outlier-row-label { font-size:13px; color:var(--text2); min-width:160px; }
+.outlier-removed { font-size:11px; color:var(--text-amber); background:var(--bg-amber); border-radius:99px; padding:2px 8px; white-space:nowrap; }
+/* range pair */
+.range-pair { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+.range-pair input[type=number] { width:90px; font-size:13px; padding:5px 8px; border:0.5px solid var(--border2); border-radius:var(--r); background:var(--bg); color:var(--text); }
+.range-pair span { font-size:13px; color:var(--text2); }
+.fte-select { font-size:13px; }
+
+/* Stats */
+.stat-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(130px,1fr)); gap:10px; margin-bottom:1.25rem; }
+.stat { background:var(--bg2); border-radius:var(--r); padding:0.85rem 1rem; }
+.stat-lbl { font-size:11px; color:var(--text2); margin-bottom:3px; text-transform:uppercase; letter-spacing:.04em; }
+.stat-val { font-size:21px; font-weight:500; }
+
+/* Charts */
+.chart-row { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:1.25rem; }
+@media(max-width:580px){ .chart-row { grid-template-columns:1fr; } }
+.chart-lbl { font-size:11px; color:var(--text2); margin-bottom:8px; text-transform:uppercase; letter-spacing:.06em; }
+.chart-box { position:relative; width:100%; height:260px; }
+.chart-box-tall { position:relative; width:100%; height:320px; }
+
+/* Predictor */
+.pred-layout { display:grid; grid-template-columns:1fr 1.2fr; gap:1.5rem; align-items:start; }
+@media(max-width:580px){ .pred-layout { grid-template-columns:1fr; } }
+.pred-inputs { display:flex; flex-direction:column; gap:1.1rem; }
+.field-label { font-size:13px; color:var(--text2); margin-bottom:5px; display:block; }
+.field-label strong { color:var(--text); font-weight:600; font-size:18px; }
+.exp-row { display:flex; gap:10px; align-items:center; }
+input[type=range] { flex:1; accent-color:var(--blue); }
+input[type=number] { width:68px; font-size:14px; padding:5px 8px; border:0.5px solid var(--border2); border-radius:var(--r); background:var(--bg); color:var(--text); text-align:center; -moz-appearance:textfield; }
+input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;}
+.pred-result { background:var(--bg2); border-radius:var(--rl); padding:1.25rem; min-height:120px; }
+.pred-empty { font-size:13px; color:var(--text2); }
+.pred-main { font-size:38px; font-weight:600; color:var(--text-blue); letter-spacing:-.02em; line-height:1.1; margin-bottom:4px; }
+.pred-sub { font-size:13px; color:var(--text2); margin-bottom:10px; }
+.pred-rows { display:flex; flex-direction:column; }
+.pred-row { display:flex; justify-content:space-between; align-items:baseline; font-size:13px; padding:6px 0; border-bottom:0.5px solid var(--border); }
+.pred-row:last-child { border-bottom:none; }
+.pred-row-lbl { color:var(--text2); }
+.pred-row-val { font-weight:500; }
+.badge { display:inline-block; font-size:11px; padding:2px 8px; border-radius:99px; margin-left:6px; }
+.badge-up   { background:var(--bg-green);  color:var(--text-green); }
+.badge-down { background:var(--bg-amber);  color:var(--text-amber); }
+.badge-pct  { background:var(--bg-purple); color:var(--text-purple); }
+.pct-bar-wrap { margin:10px 0 4px; }
+.pct-bar-track { height:8px; background:var(--border); border-radius:99px; position:relative; overflow:visible; }
+.pct-bar-fill { height:100%; border-radius:99px; background:linear-gradient(90deg,var(--green),var(--blue)); transition:width .3s; }
+.pct-bar-marker { position:absolute; top:-3px; width:14px; height:14px; border-radius:50%; background:var(--blue); border:2px solid var(--bg); box-shadow:0 1px 4px rgba(0,0,0,.2); transform:translateX(-50%); transition:left .3s; }
+.pct-bar-labels { display:flex; justify-content:space-between; font-size:10px; color:var(--text2); margin-top:4px; }
+.pred-note { font-size:11px; color:var(--text2); line-height:1.6; margin-top:8px; }
+
+/* Table */
+.table-wrap { overflow-x:auto; }
+table { width:100%; border-collapse:collapse; font-size:13px; }
+th { text-align:left; padding:7px 10px; border-bottom:1px solid var(--border2); color:var(--text2); font-weight:500; white-space:nowrap; }
+td { padding:7px 10px; border-bottom:0.5px solid var(--border); white-space:nowrap; }
+tr:last-child td { border-bottom:none; }
+tbody tr:hover td { background:var(--bg2); }
+.redacted { color:var(--border2); letter-spacing:.08em; }
+
+/* Compare */
+.cmp-datasets { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:10px; margin-bottom:1.25rem; }
+.cmp-card { border-radius:var(--r); padding:1rem; border-left:4px solid; }
+.cmp-card-label { font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.04em; margin-bottom:4px; }
+.cmp-card-val { font-size:20px; font-weight:500; }
+.cmp-card-sub { font-size:12px; color:var(--text2); margin-top:2px; }
+.cmp-table { width:100%; border-collapse:collapse; font-size:13px; }
+.cmp-table th { text-align:left; padding:8px 12px; border-bottom:1px solid var(--border2); color:var(--text2); font-weight:500; white-space:nowrap; }
+.cmp-table td { padding:8px 12px; border-bottom:0.5px solid var(--border); white-space:nowrap; }
+.cmp-table tr:last-child td { border-bottom:none; }
+.cmp-swatch { display:inline-block; width:10px; height:10px; border-radius:50%; margin-right:6px; vertical-align:middle; }
+
+footer { text-align:center; font-size:12px; color:var(--text2); margin-top:2rem; }
+header { background: #1c1c2e; padding: 14px 28px; display: flex; align-items: center; justify-content: space-between; border-bottom: 3px solid #8b1a1a; flex-shrink: 0; }
+.header-left { display: flex; flex-direction: column; gap: 2px; }
+header h1 { color: #f4f0e8; font-size: 1.1rem; font-weight: 600; letter-spacing: 0.02em; }
+.subtitle { font-family: monospace; font-size: 0.62rem; color: #5a5a7a; letter-spacing: 0.1em; text-transform: uppercase; }
+.header-right { display: flex; align-items: center; }
+.back-link { font-family: monospace; font-size: 0.68rem; color: #5a5a7a; text-decoration: none; letter-spacing: 0.06em; }
+.back-link:hover { color: #f4f0e8; }
+</style>
+</head>
+<body>
+<header>
+  <div class="header-left">
+    <h1>Wisconsin Teacher Salary Analyzer</h1>
+    <div class="subtitle">Educator Finance Tools · v1.5</div>
+  </div>
+  <div class="header-right">
+    <a class="back-link" href="index.html">← All Tools</a>
+  </div>
+</header>
+
+<div class="page">
+
+<div class="tabs">
+  <button class="tab active" onclick="switchTab('analyze')">Analyze</button>
+  <button class="tab" onclick="switchTab('compare')">Compare datasets</button>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     ANALYZE TAB
+══════════════════════════════════════════════════════ -->
+<div id="tabAnalyze">
+
+  <div class="card instr">
+    <ol>
+      <li>Go to <a href="https://publicstaffreports.dpi.wi.gov/PubStaffReport/Public/PublicReport/AllStaffReport" target="_blank"><strong>DPI Public Staff Reports</strong></a></li>
+      <li>Select a <strong>year</strong> and optionally filter to your district under <strong>Hiring Agency</strong></li>
+      <li>Click <strong>Download</strong> — saves a CSV to your computer</li>
+      <li>Upload the file below, or open it, select all, copy, and paste</li>
+    </ol>
+  </div>
+
+  <div class="card upload-zone" id="dropZoneA">
+    <div style="font-size:14px;color:var(--text2);margin-bottom:10px;">Paste CSV data or drag and drop a file here</div>
+    <textarea id="csvInputA" placeholder="Paste CSV content here..."></textarea>
+    <div class="btn-row">
+      <input type="file" id="fileInputA" accept=".csv" style="display:none">
+      <button onclick="document.getElementById('fileInputA').click()">Upload CSV file</button>
+      <button class="btn-primary" onclick="parseAnalyze()">Analyze ↗</button>
+    </div>
+    <div id="errA" class="err hidden"></div>
+    <div id="dbgA" class="dbg"></div>
+  </div>
+
+  <div id="analyzeResults" class="hidden">
+
+    <!-- Filters -->
+    <div class="filters-bar">
+      <div class="filter-group">
+        <label>District:</label><select id="fDistrict" onchange="applyAnalyzeFilters()"><option value="">All</option></select>
+        <label>Position:</label><select id="fPosition" onchange="applyAnalyzeFilters()"><option value="">All</option></select>
+        <label>Year:</label><select id="fYear" onchange="applyAnalyzeFilters()"><option value="">All</option></select>
+      </div>
+      <div class="pill" id="nameToggle" onclick="toggleNames()">
+        <span class="pip"></span><span id="nameToggleTxt">Show names</span>
+      </div>
+    </div>
+
+    <!-- ── Outlier controls ── -->
+    <div class="outlier-panel" id="outlierPanel">
+      <div class="outlier-header" onclick="toggleOutlierPanel()">
+        <div class="outlier-header-left">
+          <span class="outlier-title">Outlier &amp; data filters</span>
+          <span class="outlier-summary" id="outlierSummary">None active</span>
+        </div>
+        <span class="outlier-chevron" id="outlierChevron">▾</span>
+      </div>
+      <div class="outlier-body hidden" id="outlierBody">
+
+        <!-- FTE filter -->
+        <div class="outlier-row">
+          <span class="outlier-row-label">FTE minimum</span>
+          <select id="fteMin" class="fte-select" onchange="applyAnalyzeFilters()">
+            <option value="0">All (include part-time)</option>
+            <option value="0.5">≥ 0.5 FTE</option>
+            <option value="0.75">≥ 0.75 FTE</option>
+            <option value="0.9" selected>≥ 0.9 FTE (full-time)</option>
+            <option value="1.0">= 1.0 FTE only</option>
+          </select>
+          <span class="outlier-removed hidden" id="fteRemoved"></span>
+        </div>
+
+        <!-- IQR filter -->
+        <div class="outlier-row">
+          <span class="outlier-row-label">IQR outlier removal</span>
+          <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+            <select id="iqrMult" onchange="applyAnalyzeFilters()">
+              <option value="0">Off</option>
+              <option value="1.5" selected>1.5× IQR (standard)</option>
+              <option value="2.0">2.0× IQR (moderate)</option>
+              <option value="3.0">3.0× IQR (conservative)</option>
+            </select>
+            <span style="font-size:12px;color:var(--text2);">Removes salaries below Q1 − k·IQR or above Q3 + k·IQR</span>
+          </div>
+          <span class="outlier-removed hidden" id="iqrRemoved"></span>
+        </div>
+
+        <!-- Manual salary range -->
+        <div class="outlier-row">
+          <span class="outlier-row-label">Manual salary range</span>
+          <div class="range-pair">
+            <input type="number" id="salFloor" placeholder="Min $" min="0" step="1000" oninput="applyAnalyzeFilters()">
+            <span>to</span>
+            <input type="number" id="salCeil" placeholder="Max $" min="0" step="1000" oninput="applyAnalyzeFilters()">
+          </div>
+          <span class="outlier-removed hidden" id="manualRemoved"></span>
+        </div>
+
+        <!-- Reset -->
+        <div>
+          <button onclick="resetOutlierFilters()" style="font-size:12px;padding:4px 12px;">Reset all filters</button>
+          <span style="font-size:11px;color:var(--text2);margin-left:10px;" id="totalRemoved"></span>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stat-grid">
+      <div class="stat"><div class="stat-lbl">Records</div><div class="stat-val" id="sCount">—</div></div>
+      <div class="stat"><div class="stat-lbl">Median salary</div><div class="stat-val" id="sMedian">—</div></div>
+      <div class="stat"><div class="stat-lbl">Salary range</div><div class="stat-val" id="sRange" style="font-size:14px;padding-top:5px;">—</div></div>
+      <div class="stat"><div class="stat-lbl">Avg experience</div><div class="stat-val" id="sExp">—</div></div>
+      <div class="stat"><div class="stat-lbl">25th percentile</div><div class="stat-val" id="sP25">—</div></div>
+      <div class="stat"><div class="stat-lbl">75th percentile</div><div class="stat-val" id="sP75">—</div></div>
+    </div>
+
+    <div class="chart-row">
+      <div class="card"><div class="chart-lbl">Salary by experience</div><div class="chart-box"><canvas id="cExp"></canvas></div></div>
+      <div class="card"><div class="chart-lbl">Salary distribution</div><div class="chart-box"><canvas id="cDist"></canvas></div></div>
+    </div>
+    <div class="card"><div class="chart-lbl">Median · 25th · 75th percentile by experience bracket</div><div class="chart-box"><canvas id="cBracket"></canvas></div></div>
+
+    <!-- Predictor -->
+    <div class="card">
+      <div class="card-title">Where do I fall? — salary estimator</div>
+      <div class="pred-layout">
+        <div class="pred-inputs">
+          <div>
+            <span class="field-label">Years of experience: <strong id="expDisplay">10</strong></span>
+            <div class="exp-row">
+              <input type="range"  id="predSlider" min="0" max="40" value="10" step="1" oninput="syncExp('slider')">
+              <input type="number" id="predNum"    min="0" max="40" value="10"           oninput="syncExp('num')">
+            </div>
+          </div>
+          <p style="font-size:12px;color:var(--text2);line-height:1.6;">Adjust your years of experience to see where your salary would likely fall — and how it compares to everyone in the filtered dataset.</p>
+        </div>
+        <div>
+          <div class="pred-result" id="predResult"><div class="pred-empty">Load data to see your estimate.</div></div>
+          <p class="pred-note">Estimate uses linear regression on the current filtered dataset. Percentile is calculated against all records shown. Actual salary depends on your district's negotiated schedule.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Table -->
+    <div class="card">
+      <div class="card-title">Individual records <span id="tCount" style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--text2);"></span></div>
+      <div class="col-toggles" id="colToggles"></div>
+      <div class="table-wrap"><table><thead><tr id="tHead"></tr></thead><tbody id="tBody"></tbody></table></div>
+      <div id="tMore" style="font-size:12px;color:var(--text2);text-align:center;margin-top:8px;"></div>
+    </div>
+
+  </div>
+</div><!-- /tabAnalyze -->
+
+
+<!-- ══════════════════════════════════════════════════════
+     COMPARE TAB
+══════════════════════════════════════════════════════ -->
+<div id="tabCompare" class="hidden">
+
+  <div class="card instr">
+    <ol>
+      <li>Download <strong>separate CSV files</strong> for each district or year you want to compare from <a href="https://publicstaffreports.dpi.wi.gov/PubStaffReport/Public/PublicReport/AllStaffReport" target="_blank">DPI Public Staff Reports</a></li>
+      <li>Upload each file below — give it a short label (e.g. "Madison 2024")</li>
+      <li>Charts and tables update automatically as you add files</li>
+    </ol>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Add a dataset</div>
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:12px;">
+      <input type="text" id="cmpLabel" placeholder="Label (e.g. Madison 2024)" style="font-size:13px;padding:7px 10px;border:0.5px solid var(--border2);border-radius:var(--r);background:var(--bg);color:var(--text);flex:1;min-width:160px;">
+      <input type="file" id="fileInputC" accept=".csv" style="display:none">
+      <button onclick="document.getElementById('fileInputC').click()">Choose file</button>
+      <span id="cmpFileName" style="font-size:12px;color:var(--text2);">No file chosen</span>
+    </div>
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+      <button class="btn-primary" onclick="addDataset()">Add dataset ↗</button>
+    </div>
+    <div id="errC" class="err hidden"></div>
+    <div id="dbgC" class="dbg"></div>
+  </div>
+
+  <div id="cmpFileList" class="hidden">
+    <div class="card">
+      <div class="card-title">Loaded datasets</div>
+      <div class="file-list" id="fileListItems"></div>
+      <button class="btn-danger" onclick="clearDatasets()" style="margin-top:4px;font-size:12px;padding:5px 12px;">Clear all</button>
+    </div>
+  </div>
+
+  <!-- Compare outlier panel -->
+  <div class="outlier-panel hidden" id="cmpOutlierPanel">
+    <div class="outlier-header" onclick="toggleCmpOutlierPanel()">
+      <div class="outlier-header-left">
+        <span class="outlier-title">Outlier &amp; data filters</span>
+        <span class="outlier-summary" id="cmpOutlierSummary">None active</span>
+      </div>
+      <span class="outlier-chevron" id="cmpOutlierChevron">▾</span>
+    </div>
+    <div class="outlier-body hidden" id="cmpOutlierBody">
+      <div class="outlier-row">
+        <span class="outlier-row-label">FTE minimum</span>
+        <select id="cFteMin" class="fte-select" onchange="renderCompare()">
+          <option value="0">All (include part-time)</option>
+          <option value="0.5">≥ 0.5 FTE</option>
+          <option value="0.75">≥ 0.75 FTE</option>
+          <option value="0.9" selected>≥ 0.9 FTE (full-time)</option>
+          <option value="1.0">= 1.0 FTE only</option>
+        </select>
+      </div>
+      <div class="outlier-row">
+        <span class="outlier-row-label">IQR outlier removal</span>
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+          <select id="cIqrMult" onchange="renderCompare()">
+            <option value="0">Off</option>
+            <option value="1.5" selected>1.5× IQR (standard)</option>
+            <option value="2.0">2.0× IQR (moderate)</option>
+            <option value="3.0">3.0× IQR (conservative)</option>
+          </select>
+          <span style="font-size:12px;color:var(--text2);">Removes salaries below Q1 − k·IQR or above Q3 + k·IQR</span>
+        </div>
+      </div>
+      <div class="outlier-row">
+        <span class="outlier-row-label">Manual salary range</span>
+        <div class="range-pair">
+          <input type="number" id="cSalFloor" placeholder="Min $" min="0" step="1000" oninput="renderCompare()">
+          <span>to</span>
+          <input type="number" id="cSalCeil" placeholder="Max $" min="0" step="1000" oninput="renderCompare()">
+        </div>
+      </div>
+      <div>
+        <button onclick="resetCmpOutlierFilters()" style="font-size:12px;padding:4px 12px;">Reset all filters</button>
+        <span style="font-size:11px;color:var(--text2);margin-left:10px;" id="cmpTotalRemoved"></span>
+      </div>
+    </div>
+  </div>
+
+  <div id="compareResults" class="hidden">
+    <div id="cmpStatCards" class="cmp-datasets"></div>
+    <div class="card">
+      <div class="card-title">Summary comparison</div>
+      <div class="table-wrap"><table class="cmp-table" id="cmpSummaryTable"></table></div>
+    </div>
+    <div class="card"><div class="chart-lbl">Median salary by experience bracket</div><div class="chart-box-tall"><canvas id="cCmpBracket"></canvas></div></div>
+    <div class="card"><div class="chart-lbl">Salary distribution comparison</div><div class="chart-box-tall"><canvas id="cCmpDist"></canvas></div></div>
+    <div class="card">
+      <div class="chart-lbl">Median salary trend across datasets</div>
+      <div class="chart-box"><canvas id="cCmpTrend"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="chart-lbl">Salary schedule spread (max − min) by experience bracket</div>
+      <div class="chart-box"><canvas id="cCmpSpread"></canvas></div>
+      <p style="font-size:11px;color:var(--text2);margin-top:8px;">A wider spread means a less compressed salary schedule — larger gap between lowest and highest earner in each experience range.</p>
+    </div>
+    <div class="card">
+      <div class="card-title">Salary estimator — compare across datasets</div>
+      <div class="pred-layout">
+        <div class="pred-inputs">
+          <div>
+            <span class="field-label">Years of experience: <strong id="cExpDisplay">10</strong></span>
+            <div class="exp-row">
+              <input type="range"  id="cPredSlider" min="0" max="40" value="10" step="1" oninput="syncCmpExp('slider')">
+              <input type="number" id="cPredNum"    min="0" max="40" value="10"           oninput="syncCmpExp('num')">
+            </div>
+          </div>
+          <p style="font-size:12px;color:var(--text2);line-height:1.6;">See how your estimated salary compares across all loaded datasets at the same experience level.</p>
+        </div>
+        <div id="cmpPredResult" class="pred-result"><div class="pred-empty">Add datasets to see comparison.</div></div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /tabCompare -->
+
+<footer>All processing is local — no data leaves your device. &nbsp;·&nbsp; v1.5<br>
+  Source: <a href="https://publicstaffreports.dpi.wi.gov" target="_blank">Wisconsin DPI Public Staff Reports</a></footer>
+</div><!-- /page -->
+
+<script>
+// ═══════════════════════════════════════════
+// CONSTANTS
+// ═══════════════════════════════════════════
+const PALETTE=[
+  {solid:'#378add',fill:'rgba(55,138,221,0.18)'},{solid:'#1d9e75',fill:'rgba(29,158,117,0.18)'},
+  {solid:'#e09020',fill:'rgba(224,144,32,0.18)'},{solid:'#7f77dd',fill:'rgba(127,119,221,0.18)'},
+  {solid:'#e53e3e',fill:'rgba(229,62,62,0.18)'},{solid:'#0ea5c9',fill:'rgba(14,165,201,0.18)'},
+];
+const COLS=[
+  {key:'last',  label:'Last name', defaultOn:false},
+  {key:'first', label:'First name',defaultOn:false},
+  {key:'dist',  label:'District',  defaultOn:true},
+  {key:'pos',   label:'Position',  defaultOn:true},
+  {key:'texp',  label:'Total exp', defaultOn:true},
+  {key:'lexp',  label:'Local exp', defaultOn:true},
+  {key:'sal',   label:'Salary',    defaultOn:true},
+  {key:'fte',   label:'FTE',       defaultOn:false},
+  {key:'year',  label:'Year',      defaultOn:false},
+];
+let colVisible={};COLS.forEach(c=>colVisible[c.key]=c.defaultOn);
+const BRS=[{l:'0–3',lo:0,hi:3},{l:'4–7',lo:4,hi:7},{l:'8–12',lo:8,hi:12},{l:'13–17',lo:13,hi:17},{l:'18–24',lo:18,hi:24},{l:'25+',lo:25,hi:999}];
+
+// ═══════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════
+let analyzeAll=[], analyzeFiltered=[], analyzeCharts={}, showNames=false, aRegCache={};
+let datasets=[], cmpCharts={}, cmpPendingFile=null;
+let outlierPanelOpen=false;
+
+// ═══════════════════════════════════════════
+// TABS
+// ═══════════════════════════════════════════
+function switchTab(t){
+  document.querySelectorAll('.tab').forEach((el,i)=>el.classList.toggle('active',['analyze','compare'][i]===t));
+  document.getElementById('tabAnalyze').classList.toggle('hidden',t!=='analyze');
+  document.getElementById('tabCompare').classList.toggle('hidden',t!=='compare');
+}
+
+// ═══════════════════════════════════════════
+// OUTLIER PANEL
+// ═══════════════════════════════════════════
+function toggleOutlierPanel(){
+  outlierPanelOpen=!outlierPanelOpen;
+  document.getElementById('outlierBody').classList.toggle('hidden',!outlierPanelOpen);
+  document.getElementById('outlierChevron').classList.toggle('open',outlierPanelOpen);
+}
+
+function resetOutlierFilters(){
+  document.getElementById('fteMin').value='0.9';
+  document.getElementById('iqrMult').value='1.5';
+  document.getElementById('salFloor').value='';
+  document.getElementById('salCeil').value='';
+  applyAnalyzeFilters();
+}
+
+// Core outlier filter — takes data and explicit settings, returns filtered array.
+function applyOutliersToData(data, fteMin, iqrK, salFloor, salCeil){
+  let after=data;
+  if(fteMin>0) after=after.filter(d=>d.fte===null||d.fte>=fteMin);
+  if(iqrK>0 && after.length>4){
+    const sals=[...after.map(d=>d.sal)].sort((a,b)=>a-b);
+    const q1=pctile(sals,25),q3=pctile(sals,75),iqr=q3-q1;
+    const lo=q1-iqrK*iqr,hi=q3+iqrK*iqr;
+    after=after.filter(d=>d.sal>=lo&&d.sal<=hi);
+  }
+  if(salFloor>0) after=after.filter(d=>d.sal>=salFloor);
+  if(salCeil<Infinity) after=after.filter(d=>d.sal<=salCeil);
+  return after;
+}
+
+// Analyze-tab wrapper — reads its own controls, updates badges, returns filtered data.
+function applyOutliers(data){
+  const fteMin=parseFloat(document.getElementById('fteMin').value)||0;
+  const iqrK=parseFloat(document.getElementById('iqrMult').value)||0;
+  const salFloor=parseFloat(document.getElementById('salFloor').value)||0;
+  const salCeil=parseFloat(document.getElementById('salCeil').value)||Infinity;
+  const total=data.length;
+
+  let after=data;
+  const afterFte=fteMin>0?after.filter(d=>d.fte===null||d.fte>=fteMin):after;
+  showBadge('fteRemoved',after.length-afterFte.length,'FTE'); after=afterFte;
+
+  let afterIqr=after;
+  if(iqrK>0&&after.length>4){
+    const sals=[...after.map(d=>d.sal)].sort((a,b)=>a-b);
+    const q1=pctile(sals,25),q3=pctile(sals,75),iqr=q3-q1;
+    const lo=q1-iqrK*iqr,hi=q3+iqrK*iqr;
+    afterIqr=after.filter(d=>d.sal>=lo&&d.sal<=hi);
+  }
+  showBadge('iqrRemoved',after.length-afterIqr.length,'IQR'); after=afterIqr;
+
+  const afterMan=after.filter(d=>(salFloor<=0||d.sal>=salFloor)&&(salCeil>=Infinity||d.sal<=salCeil));
+  showBadge('manualRemoved',after.length-afterMan.length,'manual'); after=afterMan;
+
+  const totalRemoved=total-after.length;
+  const sumEl=document.getElementById('outlierSummary');
+  const totEl=document.getElementById('totalRemoved');
+  if(totalRemoved===0){sumEl.textContent='None active';totEl.textContent='';}
+  else{sumEl.textContent=`${totalRemoved.toLocaleString()} records excluded`;totEl.textContent=`${totalRemoved.toLocaleString()} of ${total.toLocaleString()} records excluded total`;}
+  return after;
+}
+
+function showBadge(id,n,label){
+  const el=document.getElementById(id);
+  if(n>0){el.textContent=`${n} removed by ${label}`;el.classList.remove('hidden');}
+  else el.classList.add('hidden');
+}
+
+// Compare-tab outlier helpers
+let cmpOutlierPanelOpen=false;
+function toggleCmpOutlierPanel(){
+  cmpOutlierPanelOpen=!cmpOutlierPanelOpen;
+  document.getElementById('cmpOutlierBody').classList.toggle('hidden',!cmpOutlierPanelOpen);
+  document.getElementById('cmpOutlierChevron').classList.toggle('open',cmpOutlierPanelOpen);
+}
+function resetCmpOutlierFilters(){
+  document.getElementById('cFteMin').value='0.9';
+  document.getElementById('cIqrMult').value='1.5';
+  document.getElementById('cSalFloor').value='';
+  document.getElementById('cSalCeil').value='';
+  renderCompare();
+}
+function getCmpOutlierSettings(){
+  return{
+    fteMin:parseFloat(document.getElementById('cFteMin').value)||0,
+    iqrK:parseFloat(document.getElementById('cIqrMult').value)||0,
+    salFloor:parseFloat(document.getElementById('cSalFloor').value)||0,
+    salCeil:parseFloat(document.getElementById('cSalCeil').value)||Infinity,
+  };
+}
+function updateCmpOutlierSummary(totalBefore, totalAfter){
+  const removed=totalBefore-totalAfter;
+  const sumEl=document.getElementById('cmpOutlierSummary');
+  const totEl=document.getElementById('cmpTotalRemoved');
+  if(removed===0){sumEl.textContent='None active';totEl.textContent='';}
+  else{sumEl.textContent=`${removed.toLocaleString()} records excluded`;totEl.textContent=`${removed.toLocaleString()} of ${totalBefore.toLocaleString()} records excluded across all datasets`;}
+}
+
+// ═══════════════════════════════════════════
+// CSV PARSING
+// ═══════════════════════════════════════════
+function parseCSVLine(line){
+  const res=[];let cur='',inQ=false;
+  for(let i=0;i<line.length;i++){
+    const c=line[i];
+    if(c==='"'){if(inQ&&line[i+1]==='"'){cur+='"';i++;}else inQ=!inQ;}
+    else if(c===','&&!inQ){res.push(cur.trim());cur='';}
+    else cur+=c;
+  }
+  res.push(cur.trim());return res;
+}
+function cleanNum(s){return parseFloat(String(s||'').replace(/[$,"'\s]/g,''));}
+function findCol(h,cs){
+  for(const c of cs){const i=h.findIndex(x=>x===c);if(i>=0)return i;}
+  for(const c of cs){const i=h.findIndex(x=>x.includes(c));if(i>=0)return i;}
+  return -1;
+}
+function findHeaderRow(lines){
+  const terms=['salary','contract','fringe','degree'];
+  for(let i=0;i<Math.min(5,lines.length);i++){
+    const cols=parseCSVLine(lines[i]).map(h=>h.replace(/^"|"$/g,'').toLowerCase().trim());
+    if(cols.some(c=>terms.some(t=>c.includes(t))))return{hi:i,hdrs:cols};
+  }
+  return{hi:1,hdrs:parseCSVLine(lines[1]||lines[0]).map(h=>h.replace(/^"|"$/g,'').toLowerCase().trim())};
+}
+function csvToRows(raw){
+  const lines=raw.split(/\r?\n/).filter(l=>l.trim());
+  if(lines.length<2)return null;
+  const{hi,hdrs}=findHeaderRow(lines);
+  const ix={
+    last:findCol(hdrs,['last name','lastname','last_name']),
+    first:findCol(hdrs,['first name','firstname','first_name']),
+    dist:findCol(hdrs,['hiring agency','hiringagency','hiring_agency','agency name','agency','district']),
+    pos:findCol(hdrs,['assignment position','position','assignment_position']),
+    texp:findCol(hdrs,['total experience','total_experience','total exp','totalexperience']),
+    lexp:findCol(hdrs,['local experience','local_experience','local exp','localexperience']),
+    sal:findCol(hdrs,['degree, contract','degree,contract','contract salary','contract','total salary','totalsalary','salary']),
+    fte:findCol(hdrs,['fte']),
+    year:findCol(hdrs,['school year','schoolyear','school_year','year']),
+  };
+  if(ix.sal===-1)return{error:'Cannot find salary column. Columns: '+hdrs.join(', '),hdrs};
+  const rows=[];
+  for(let i=hi+1;i<lines.length;i++){
+    const c=parseCSVLine(lines[i]);
+    if(c.length<3)continue;
+    const sal=cleanNum(c[ix.sal]);
+    if(isNaN(sal)||sal<=0)continue;
+    const texp=ix.texp>=0?cleanNum(c[ix.texp]):NaN;
+    const lexp=ix.lexp>=0?cleanNum(c[ix.lexp]):NaN;
+    const fte=ix.fte>=0?cleanNum(c[ix.fte]):NaN;
+    rows.push({
+      last:ix.last>=0?c[ix.last]:'',first:ix.first>=0?c[ix.first]:'',
+      dist:ix.dist>=0?c[ix.dist]:'',pos:ix.pos>=0?c[ix.pos]:'',
+      texp:isNaN(texp)?null:texp,lexp:isNaN(lexp)?null:lexp,
+      sal,fte:isNaN(fte)?null:fte,year:ix.year>=0?c[ix.year]:'',
+    });
+  }
+  return{rows,hdrs,hi};
+}
+
+// ═══════════════════════════════════════════
+// MATH
+// ═══════════════════════════════════════════
+function fmt(n){return n.toLocaleString('en-US',{style:'currency',currency:'USD',maximumFractionDigits:0});}
+function med(arr){const s=[...arr].sort((a,b)=>a-b),m=Math.floor(s.length/2);return s.length%2?s[m]:(s[m-1]+s[m])/2;}
+function pctile(sorted,p){if(!sorted.length)return 0;const idx=(p/100)*(sorted.length-1),lo=Math.floor(idx),hi=Math.ceil(idx);return sorted[lo]+(sorted[hi]-sorted[lo])*(idx-lo);}
+function rankPct(sorted,val){let lo=0,hi=sorted.length;while(lo<hi){const m=(lo+hi)>>1;sorted[m]<=val?lo=m+1:hi=m;}return Math.round((lo/sorted.length)*100);}
+function ols(pts){
+  const n=pts.length;if(n<4)return null;
+  let sx=0,sy=0,sxy=0,sxx=0,syy=0;
+  for(const[x,y]of pts){sx+=x;sy+=y;sxy+=x*y;sxx+=x*x;syy+=y*y;}
+  const den=n*sxx-sx*sx;if(!den)return null;
+  const m=(n*sxy-sx*sy)/den,b=(sy-m*sx)/n;
+  const sst=syy-sy*sy/n,sse=pts.reduce((a,[x,y])=>a+(y-(m*x+b))**2,0);
+  return{m,b,r2:sst>0?1-sse/sst:0};
+}
+function getReg(data,cache){
+  const k='r'+data.length;
+  if(cache[k])return cache[k];
+  const pts=data.filter(d=>d.texp!==null).map(d=>[d.texp,d.sal]);
+  return(cache[k]={reg:ols(pts),n:pts.length});
+}
+
+// ═══════════════════════════════════════════
+// ANALYZE TAB — file input
+// ═══════════════════════════════════════════
+document.getElementById('fileInputA').addEventListener('change',e=>{
+  const f=e.target.files[0];if(!f)return;
+  const r=new FileReader();r.onload=ev=>{document.getElementById('csvInputA').value=ev.target.result;parseAnalyze();};r.readAsText(f);
+});
+['dragover','dragleave','drop'].forEach(evt=>{
+  const dz=document.getElementById('dropZoneA');
+  dz.addEventListener(evt,e=>{
+    e.preventDefault();
+    if(evt==='dragover')dz.classList.add('over');
+    else if(evt==='dragleave')dz.classList.remove('over');
+    else{dz.classList.remove('over');const f=e.dataTransfer.files[0];if(f){const r=new FileReader();r.onload=ev=>{document.getElementById('csvInputA').value=ev.target.result;parseAnalyze();};r.readAsText(f);}}
+  });
+});
+
+function parseAnalyze(){
+  const raw=document.getElementById('csvInputA').value.trim();
+  if(!raw){showErrA('Please paste or upload CSV data first.');return;}
+  clearErrA();
+  const result=csvToRows(raw);
+  if(!result){showErrA('Too few rows.');return;}
+  if(result.error){showErrA(result.error);return;}
+  const{rows,hdrs,hi}=result;
+  if(!rows.length){showErrA('No valid salary rows found.');return;}
+  document.getElementById('dbgA').textContent='Header row: '+(hi+1)+' | '+hdrs.join(' | ');
+  document.getElementById('dbgA').style.display='block';
+  analyzeAll=rows;aRegCache={};
+  populateAnalyzeFilters();
+  buildColToggles();
+  document.getElementById('analyzeResults').classList.remove('hidden');
+  applyAnalyzeFilters();
+}
+function populateAnalyzeFilters(){
+  const u=k=>[...new Set(analyzeAll.map(d=>d[k]).filter(Boolean))].sort();
+  setOpts('fDistrict',u('dist'));setOpts('fPosition',u('pos'));setOpts('fYear',u('year'));
+}
+function setOpts(id,vals){
+  const sel=document.getElementById(id),cur=sel.value;
+  while(sel.options.length>1)sel.remove(1);
+  vals.forEach(v=>sel.appendChild(new Option(v,v)));
+  if(vals.includes(cur))sel.value=cur;
+}
+function applyAnalyzeFilters(){
+  const d=document.getElementById('fDistrict').value;
+  const p=document.getElementById('fPosition').value;
+  const y=document.getElementById('fYear').value;
+  // First: dropdown filters on the raw dataset
+  let base=analyzeAll;
+  if(d)base=base.filter(r=>r.dist===d);
+  if(p)base=base.filter(r=>r.pos===p);
+  if(y)base=base.filter(r=>r.year===y);
+  // Then: outlier filters
+  analyzeFiltered=applyOutliers(base);
+  aRegCache={};
+  renderAnalyze();
+  runPredictor();
+}
+
+// ═══════════════════════════════════════════
+// ANALYZE TAB — name toggle + col toggles
+// ═══════════════════════════════════════════
+function toggleNames(){
+  showNames=!showNames;
+  document.getElementById('nameToggle').classList.toggle('on',showNames);
+  document.getElementById('nameToggleTxt').textContent=showNames?'Hide names':'Show names';
+  renderTable();
+}
+function buildColToggles(){
+  const wrap=document.getElementById('colToggles');wrap.innerHTML='';
+  COLS.forEach(col=>{
+    const pill=document.createElement('div');
+    pill.className='pill'+(colVisible[col.key]?' on':'');
+    pill.innerHTML=`<span class="pip"></span><span>${col.label}</span>`;
+    pill.onclick=()=>{colVisible[col.key]=!colVisible[col.key];pill.classList.toggle('on',colVisible[col.key]);renderTable();};
+    wrap.appendChild(pill);
+  });
+}
+
+// ═══════════════════════════════════════════
+// ANALYZE TAB — predictor
+// ═══════════════════════════════════════════
+function syncExp(src){
+  const s=document.getElementById('predSlider'),n=document.getElementById('predNum');
+  if(src==='slider')n.value=parseInt(s.value);
+  else{const v=Math.min(40,Math.max(0,parseInt(n.value)||0));s.value=v;n.value=v;}
+  document.getElementById('expDisplay').textContent=n.value;
+  runPredictor();
+}
+function runPredictor(){
+  const data=analyzeFiltered;if(!data.length)return;
+  const exp=parseFloat(document.getElementById('predSlider').value);
+  const{reg,n:nReg}=getReg(data,aRegCache);
+  const br=BRS.find(b=>exp>=b.lo&&exp<=b.hi)||BRS[BRS.length-1];
+  const brSals=data.filter(d=>d.texp!==null&&d.texp>=br.lo&&d.texp<=br.hi).map(d=>d.sal);
+  const brMed=brSals.length>=3?Math.round(med(brSals)):null;
+  const regEst=reg&&nReg>=10?Math.round(reg.m*exp+reg.b):null;
+  const primary=regEst??brMed;
+  const allSals=[...data.map(d=>d.sal)].sort((a,b)=>a-b);
+  const overallMed=Math.round(med(allSals));
+  const p25=Math.round(pctile(allSals,25)),p75=Math.round(pctile(allSals,75));
+  const box=document.getElementById('predResult');
+  if(!primary){box.innerHTML='<div class="pred-empty">Not enough data — broaden your filters.</div>';return;}
+  const pct=rankPct(allSals,primary);
+  const diff=primary-overallMed,diffPct=Math.round(Math.abs(diff)/overallMed*100);
+  const badge=diff>=0?`<span class="badge badge-up">+${diffPct}% vs median</span>`:`<span class="badge badge-down">−${diffPct}% vs median</span>`;
+  const pctBadge=`<span class="badge badge-pct">${pct}th percentile</span>`;
+  const barPct=Math.min(Math.max(pct,2),98);
+  const barHTML=`<div class="pct-bar-wrap"><div class="pct-bar-track"><div class="pct-bar-fill" style="width:${barPct}%"></div><div class="pct-bar-marker" style="left:${barPct}%"></div></div><div class="pct-bar-labels"><span>Min</span><span>Median</span><span>Max</span></div></div>`;
+  let html=`<div class="pred-main">${fmt(primary)}</div><div class="pred-sub">${badge}${pctBadge}</div>${barHTML}<div class="pred-rows">`;
+  if(brMed)html+=prow(`Bracket median (${br.l} yrs, n=${brSals.length})`,fmt(brMed));
+  if(regEst&&brMed&&Math.abs(regEst-brMed)>1500)html+=prow('Regression estimate',fmt(regEst));
+  html+=prow('25th percentile',fmt(p25));
+  html+=prow('Overall median',fmt(overallMed));
+  html+=prow('75th percentile',fmt(p75));
+  if(reg)html+=prow('Regression fit (R²)',reg.r2.toFixed(2)+` (n=${nReg})`);
+  html+='</div>';
+  box.innerHTML=html;
+}
+function prow(l,v){return`<div class="pred-row"><span class="pred-row-lbl">${l}</span><span class="pred-row-val">${v}</span></div>`;}
+
+// ═══════════════════════════════════════════
+// ANALYZE TAB — charts + table
+// ═══════════════════════════════════════════
+function renderAnalyze(){
+  const data=analyzeFiltered,sals=data.map(d=>d.sal).sort((a,b)=>a-b);
+  document.getElementById('sCount').textContent=data.length.toLocaleString();
+  document.getElementById('sMedian').textContent=fmt(med(sals));
+  document.getElementById('sRange').textContent=fmt(Math.min(...sals))+' – '+fmt(Math.max(...sals));
+  const exps=data.filter(d=>d.texp!==null);
+  document.getElementById('sExp').textContent=exps.length?(exps.reduce((a,b)=>a+b.texp,0)/exps.length).toFixed(1)+' yrs':'—';
+  document.getElementById('sP25').textContent=fmt(Math.round(pctile(sals,25)));
+  document.getElementById('sP75').textContent=fmt(Math.round(pctile(sals,75)));
+  renderExpChart();renderDistChart();renderBracketChart();renderTable();
+}
+function killA(k){if(analyzeCharts[k]){analyzeCharts[k].destroy();delete analyzeCharts[k];}}
+function renderExpChart(){
+  killA('exp');
+  const data=analyzeFiltered,pts=data.filter(d=>d.texp!==null).map(d=>({x:d.texp,y:d.sal}));
+  const{reg}=getReg(data,aRegCache);
+  const ds=[{type:'scatter',label:'Staff',data:pts,backgroundColor:PALETTE[0].fill,borderColor:PALETTE[0].solid,pointRadius:3,pointHoverRadius:5}];
+  if(reg){const mx=Math.max(...data.filter(d=>d.texp!==null).map(d=>d.texp));ds.push({type:'line',label:'Trend',data:[{x:0,y:reg.b},{x:mx,y:reg.m*mx+reg.b}],borderColor:'rgba(224,144,32,0.85)',borderWidth:2,pointRadius:0,fill:false});}
+  analyzeCharts.exp=new Chart(document.getElementById('cExp'),{type:'scatter',data:{datasets:ds},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.dataset.label==='Trend'?'Trend':c.raw.x+' yrs: '+fmt(c.raw.y)}}},scales:{x:{title:{display:true,text:'Total experience (years)',font:{size:11}},ticks:{color:'#888',font:{size:11}},grid:{color:'rgba(128,128,128,0.08)'}},y:{ticks:{callback:v=>'$'+(v/1000).toFixed(0)+'k',color:'#888',font:{size:11}},grid:{color:'rgba(128,128,128,0.08)'}}}}});
+}
+function renderDistChart(){
+  killA('dist');
+  const sals=analyzeFiltered.map(d=>d.sal),mn=Math.min(...sals),mx=Math.max(...sals),bk=5000;
+  const start=Math.floor(mn/bk)*bk,end=Math.ceil(mx/bk)*bk;
+  const buckets={};for(let v=start;v<end;v+=bk)buckets[v]=0;
+  analyzeFiltered.forEach(d=>{const b=Math.floor(d.sal/bk)*bk;if(buckets[b]!==undefined)buckets[b]++;});
+  analyzeCharts.dist=new Chart(document.getElementById('cDist'),{type:'bar',data:{labels:Object.keys(buckets).map(k=>'$'+(+k/1000).toFixed(0)+'k'),datasets:[{data:Object.values(buckets),backgroundColor:PALETTE[1].fill,borderColor:PALETTE[1].solid,borderWidth:1}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#888',font:{size:10},maxRotation:45,autoSkip:true},grid:{display:false}},y:{ticks:{color:'#888',font:{size:11}},grid:{color:'rgba(128,128,128,0.08)'}}}}});
+}
+function renderBracketChart(){
+  killA('bracket');
+  const data=analyzeFiltered;
+  const bMed=BRS.map(b=>{const s=data.filter(d=>d.texp!==null&&d.texp>=b.lo&&d.texp<=b.hi).map(d=>d.sal);return s.length?Math.round(med(s)):null;});
+  const bP25=BRS.map(b=>{const s=[...data.filter(d=>d.texp!==null&&d.texp>=b.lo&&d.texp<=b.hi).map(d=>d.sal)].sort((a,c)=>a-c);return s.length>=4?Math.round(pctile(s,25)):null;});
+  const bP75=BRS.map(b=>{const s=[...data.filter(d=>d.texp!==null&&d.texp>=b.lo&&d.texp<=b.hi).map(d=>d.sal)].sort((a,c)=>a-c);return s.length>=4?Math.round(pctile(s,75)):null;});
+  analyzeCharts.bracket=new Chart(document.getElementById('cBracket'),{type:'bar',data:{labels:BRS.map(b=>b.l+' yrs'),datasets:[{label:'Median',data:bMed,backgroundColor:'rgba(127,119,221,0.55)',borderColor:'rgba(127,119,221,0.9)',borderWidth:1},{label:'25th pct',data:bP25,backgroundColor:PALETTE[0].fill,borderColor:PALETTE[0].solid,borderWidth:1},{label:'75th pct',data:bP75,backgroundColor:PALETTE[1].fill,borderColor:PALETTE[1].solid,borderWidth:1}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,position:'top',labels:{boxWidth:10,font:{size:11},color:'#888'}},tooltip:{callbacks:{label:c=>c.raw?c.dataset.label+': '+fmt(c.raw):'—'}}},scales:{x:{ticks:{color:'#888',font:{size:12}},grid:{display:false}},y:{ticks:{callback:v=>'$'+(v/1000).toFixed(0)+'k',color:'#888',font:{size:11}},grid:{color:'rgba(128,128,128,0.08)'}}}}});
+}
+function renderTable(){
+  const MAX=500,tbody=document.getElementById('tBody'),thead=document.getElementById('tHead');
+  thead.innerHTML='';
+  COLS.filter(c=>colVisible[c.key]).forEach(c=>{const th=document.createElement('th');th.textContent=c.label;thead.appendChild(th);});
+  tbody.innerHTML='';
+  [...analyzeFiltered].sort((a,b)=>b.sal-a.sal).slice(0,MAX).forEach(d=>{
+    const tr=document.createElement('tr');
+    COLS.filter(c=>colVisible[c.key]).forEach(c=>{
+      const td=document.createElement('td');
+      if(c.key==='last'||c.key==='first'){td.innerHTML=showNames?(d[c.key]||'—'):'<span class="redacted">•••••</span>';}
+      else if(c.key==='sal')td.textContent=fmt(d.sal);
+      else if(c.key==='pos'){td.style.cssText='max-width:180px;overflow:hidden;text-overflow:ellipsis';td.textContent=d.pos||'—';}
+      else td.textContent=d[c.key]??'—';
+      tr.appendChild(td);
+    });
+    tbody.appendChild(tr);
+  });
+  document.getElementById('tCount').textContent='('+analyzeFiltered.length.toLocaleString()+' total)';
+  document.getElementById('tMore').textContent=analyzeFiltered.length>MAX?`Showing top ${MAX} of ${analyzeFiltered.length.toLocaleString()} records (sorted by salary)`:'';
+}
+function showErrA(m){const e=document.getElementById('errA');e.textContent=m;e.classList.remove('hidden');}
+function clearErrA(){document.getElementById('errA').classList.add('hidden');}
+
+// ═══════════════════════════════════════════
+// COMPARE TAB
+// ═══════════════════════════════════════════
+document.getElementById('fileInputC').addEventListener('change',e=>{
+  const f=e.target.files[0];if(!f)return;
+  cmpPendingFile=f;
+  document.getElementById('cmpFileName').textContent=f.name;
+  if(!document.getElementById('cmpLabel').value)document.getElementById('cmpLabel').value=f.name.replace(/\.csv$/i,'');
+});
+
+function addDataset(){
+  const label=document.getElementById('cmpLabel').value.trim()||('Dataset '+(datasets.length+1));
+  if(!cmpPendingFile){showErrC('Please choose a CSV file first.');return;}
+  const file=cmpPendingFile;
+  const r=new FileReader();
+  r.onload=ev=>{
+    const raw=ev.target.result.trim();
+    const result=csvToRows(raw);
+    if(!result){showErrC('Too few rows in '+label+'.');return;}
+    if(result.error){showErrC(result.error);return;}
+    if(!result.rows.length){showErrC('No valid salary rows found in '+label+'.');return;}
+    document.getElementById('dbgC').textContent='Loaded: '+label+' | '+result.rows.length+' rows | Header row '+(result.hi+1);
+    document.getElementById('dbgC').style.display='block';
+    const color=PALETTE[datasets.length%PALETTE.length];
+    datasets.push({label,color,data:result.rows});
+    cmpPendingFile=null;
+    document.getElementById('cmpFileName').textContent='No file chosen';
+    document.getElementById('cmpLabel').value='';
+    document.getElementById('fileInputC').value='';
+    clearErrC();
+    renderCompare();
+  };
+  r.readAsText(file);
+}
+function removeDataset(i){datasets.splice(i,1);renderCompare();}
+function clearDatasets(){datasets=[];renderCompare();}
+function killC(k){if(cmpCharts[k]){cmpCharts[k].destroy();delete cmpCharts[k];}}
+
+function renderCompare(){
+  const hasData=datasets.length>0;
+  document.getElementById('cmpFileList').classList.toggle('hidden',!hasData);
+  document.getElementById('cmpOutlierPanel').classList.toggle('hidden',!hasData);
+  document.getElementById('compareResults').classList.toggle('hidden',datasets.length<1);
+  const list=document.getElementById('fileListItems');list.innerHTML='';
+  datasets.forEach((ds,i)=>{
+    const chip=document.createElement('div');chip.className='file-chip';
+    chip.innerHTML=`<div class="file-chip-name"><span class="file-dot" style="background:${ds.color.solid}"></span><span><strong>${ds.label}</strong> — ${ds.data.length.toLocaleString()} records raw</span></div><span class="file-chip-remove" onclick="removeDataset(${i})" title="Remove">×</span>`;
+    list.appendChild(chip);
+  });
+  if(datasets.length<1)return;
+
+  // Apply outlier filters to each dataset
+  const{fteMin,iqrK,salFloor,salCeil}=getCmpOutlierSettings();
+  const filtered=datasets.map(ds=>({
+    ...ds,
+    data:applyOutliersToData(ds.data,fteMin,iqrK,salFloor,salCeil)
+  }));
+  const totalBefore=datasets.reduce((a,ds)=>a+ds.data.length,0);
+  const totalAfter=filtered.reduce((a,ds)=>a+ds.data.length,0);
+  updateCmpOutlierSummary(totalBefore,totalAfter);
+
+  // Stat cards
+  const cards=document.getElementById('cmpStatCards');cards.innerHTML='';
+  filtered.forEach(ds=>{
+    const sals=ds.data.map(d=>d.sal).sort((a,b)=>a-b);
+    const card=document.createElement('div');card.className='cmp-card';
+    card.style.cssText=`background:${ds.color.fill};border-left-color:${ds.color.solid};`;
+    card.innerHTML=`<div class="cmp-card-label" style="color:${ds.color.solid}">${ds.label}</div><div class="cmp-card-val">${fmt(Math.round(med(sals)))}</div><div class="cmp-card-sub">median · ${ds.data.length.toLocaleString()} records<br>${fmt(Math.round(pctile(sals,25)))} – ${fmt(Math.round(pctile(sals,75)))} (IQR)</div>`;
+    cards.appendChild(card);
+  });
+
+  // Summary table
+  const tbl=document.getElementById('cmpSummaryTable');tbl.innerHTML='';
+  const hdr=`<thead><tr><th>Dataset</th><th>Records</th><th>Min</th><th>25th pct</th><th>Median</th><th>75th pct</th><th>Max</th><th>Avg exp</th></tr></thead>`;
+  let tbody='<tbody>';
+  filtered.forEach(ds=>{
+    const sals=ds.data.map(d=>d.sal).sort((a,b)=>a-b);
+    const exps=ds.data.filter(d=>d.texp!==null);
+    const avgExp=exps.length?(exps.reduce((a,b)=>a+b.texp,0)/exps.length).toFixed(1)+' yrs':'—';
+    tbody+=`<tr><td><span class="cmp-swatch" style="background:${ds.color.solid}"></span>${ds.label}</td><td>${ds.data.length.toLocaleString()}</td><td>${fmt(Math.min(...sals))}</td><td>${fmt(Math.round(pctile(sals,25)))}</td><td><strong>${fmt(Math.round(med(sals)))}</strong></td><td>${fmt(Math.round(pctile(sals,75)))}</td><td>${fmt(Math.max(...sals))}</td><td>${avgExp}</td></tr>`;
+  });
+  tbl.innerHTML=hdr+tbody+'</tbody>';
+
+  // Bracket chart
+  killC('bracket');
+  cmpCharts.bracket=new Chart(document.getElementById('cCmpBracket'),{type:'bar',data:{labels:BRS.map(b=>b.l+' yrs'),datasets:filtered.map(ds=>({label:ds.label,backgroundColor:ds.color.fill,borderColor:ds.color.solid,borderWidth:2,data:BRS.map(b=>{const s=ds.data.filter(d=>d.texp!==null&&d.texp>=b.lo&&d.texp<=b.hi).map(d=>d.sal);return s.length>=3?Math.round(med(s)):null;})}))},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,position:'top',labels:{boxWidth:10,font:{size:11},color:'#888'}},tooltip:{callbacks:{label:c=>c.raw?c.dataset.label+': '+fmt(c.raw):'—'}}},scales:{x:{ticks:{color:'#888',font:{size:12}},grid:{display:false}},y:{ticks:{callback:v=>'$'+(v/1000).toFixed(0)+'k',color:'#888',font:{size:11}},grid:{color:'rgba(128,128,128,0.08)'}}}}});
+
+  // Distribution overlay
+  killC('dist');
+  const bk=5000,allSals=filtered.flatMap(ds=>ds.data.map(d=>d.sal));
+  const gMin=Math.floor(Math.min(...allSals)/bk)*bk,gMax=Math.ceil(Math.max(...allSals)/bk)*bk;
+  const dlabels=[];for(let v=gMin;v<gMax;v+=bk)dlabels.push('$'+(v/1000).toFixed(0)+'k');
+  cmpCharts.dist=new Chart(document.getElementById('cCmpDist'),{type:'line',data:{labels:dlabels,datasets:filtered.map(ds=>({label:ds.label,type:'line',fill:false,borderColor:ds.color.solid,backgroundColor:ds.color.fill,borderWidth:2,pointRadius:2,tension:0.4,data:dlabels.map((_,li)=>{const lo=gMin+li*bk,hi=lo+bk;return ds.data.filter(d=>d.sal>=lo&&d.sal<hi).length;})}))},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,position:'top',labels:{boxWidth:10,font:{size:11},color:'#888'}}},scales:{x:{ticks:{color:'#888',font:{size:10},maxRotation:45,autoSkip:true},grid:{display:false}},y:{ticks:{color:'#888',font:{size:11}},grid:{color:'rgba(128,128,128,0.08)'},title:{display:true,text:'# of staff',font:{size:11}}}}}});
+
+  // Trend
+  killC('trend');
+  cmpCharts.trend=new Chart(document.getElementById('cCmpTrend'),{type:'line',data:{labels:filtered.map(d=>d.label),datasets:[{label:'Median salary',data:filtered.map(ds=>Math.round(med(ds.data.map(d=>d.sal)))),borderColor:PALETTE[0].solid,backgroundColor:PALETTE[0].fill,borderWidth:2,pointRadius:5,pointHoverRadius:7,fill:true,tension:0.3}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>fmt(c.raw)}}},scales:{x:{ticks:{color:'#888',font:{size:12}},grid:{display:false}},y:{ticks:{callback:v=>'$'+(v/1000).toFixed(0)+'k',color:'#888',font:{size:11}},grid:{color:'rgba(128,128,128,0.08)'}}}}});
+
+  // Spread
+  killC('spread');
+  cmpCharts.spread=new Chart(document.getElementById('cCmpSpread'),{type:'bar',data:{labels:BRS.map(b=>b.l+' yrs'),datasets:filtered.map(ds=>({label:ds.label,backgroundColor:ds.color.fill,borderColor:ds.color.solid,borderWidth:2,data:BRS.map(b=>{const s=ds.data.filter(d=>d.texp!==null&&d.texp>=b.lo&&d.texp<=b.hi).map(d=>d.sal);return s.length>=4?Math.round(Math.max(...s)-Math.min(...s)):null;})}))},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,position:'top',labels:{boxWidth:10,font:{size:11},color:'#888'}},tooltip:{callbacks:{label:c=>c.raw?c.dataset.label+': '+fmt(c.raw):'—'}}},scales:{x:{ticks:{color:'#888',font:{size:12}},grid:{display:false}},y:{ticks:{callback:v=>'$'+(v/1000).toFixed(0)+'k',color:'#888',font:{size:11}},grid:{color:'rgba(128,128,128,0.08)'}}}}});
+
+  // Store filtered for predictor
+  renderCompare._filtered=filtered;
+  runCmpPredictor();
+}
+
+function syncCmpExp(src){
+  const s=document.getElementById('cPredSlider'),n=document.getElementById('cPredNum');
+  if(src==='slider')n.value=parseInt(s.value);
+  else{const v=Math.min(40,Math.max(0,parseInt(n.value)||0));s.value=v;n.value=v;}
+  document.getElementById('cExpDisplay').textContent=n.value;
+  runCmpPredictor();
+}
+function runCmpPredictor(){
+  const filtered=renderCompare._filtered;
+  if(!filtered||!filtered.length)return;
+  const exp=parseFloat(document.getElementById('cPredSlider').value);
+  const box=document.getElementById('cmpPredResult');
+  const br=BRS.find(b=>exp>=b.lo&&exp<=b.hi)||BRS[BRS.length-1];
+  let html='<div class="pred-rows">';
+  filtered.forEach(ds=>{
+    const cache={};
+    const{reg,n:nR}=getReg(ds.data,cache);
+    const brSals=ds.data.filter(d=>d.texp!==null&&d.texp>=br.lo&&d.texp<=br.hi).map(d=>d.sal);
+    const brMed=brSals.length>=3?Math.round(med(brSals)):null;
+    const regEst=reg&&nR>=10?Math.round(reg.m*exp+reg.b):null;
+    const est=regEst??brMed;
+    const allSals=[...ds.data.map(d=>d.sal)].sort((a,b)=>a-b);
+    const pct=est?rankPct(allSals,est):null;
+    const val=est?`${fmt(est)} <span class="badge badge-pct">${pct}th pct</span>`:'<span style="color:var(--text2)">insufficient data</span>';
+    html+=`<div class="pred-row"><span class="pred-row-lbl"><span class="cmp-swatch" style="background:${ds.color.solid}"></span>${ds.label}</span><span class="pred-row-val">${val}</span></div>`;
+  });
+  html+='</div>';
+  box.innerHTML=html;
+}
+
+function showErrC(m){const e=document.getElementById('errC');e.textContent=m;e.classList.remove('hidden');}
+function clearErrC(){document.getElementById('errC').classList.add('hidden');}
+</script>
+</body>
+</html>
