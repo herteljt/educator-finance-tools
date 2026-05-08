@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Educator Finance Tools</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Source+Sans+3:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:       #0f1117;
+  --surface:  #181c27;
+  --card:     #1e2333;
+  --border:   #2a2f42;
+  --gold:     #c9a84c;
+  --gold-dim: #8a6f2e;
+  --text:     #e8e4d9;
+  --muted:    #7a7f96;
+  --accent:   #4a7fa5;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'Source Sans 3', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Grain overlay ── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.4;
+}
+
+/* ── Header ── */
+header {
+  position: relative;
+  z-index: 1;
+  padding: 64px 40px 48px;
+  max-width: 960px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.eyebrow {
+  font-family: 'Source Sans 3', sans-serif;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.eyebrow::before {
+  content: '';
+  display: inline-block;
+  width: 28px;
+  height: 1px;
+  background: var(--gold);
+}
+
+h1 {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: clamp(2rem, 5vw, 3.2rem);
+  font-weight: 700;
+  line-height: 1.15;
+  color: var(--text);
+  margin-bottom: 16px;
+  letter-spacing: -0.01em;
+}
+
+h1 em {
+  font-style: italic;
+  color: var(--gold);
+}
+
+.tagline {
+  font-size: 1rem;
+  font-weight: 300;
+  color: var(--muted);
+  max-width: 520px;
+  line-height: 1.65;
+}
+
+/* ── Divider ── */
+.divider {
+  position: relative;
+  z-index: 1;
+  max-width: 960px;
+  margin: 0 auto;
+  width: 100%;
+  padding: 0 40px;
+}
+.divider hr {
+  border: none;
+  border-top: 1px solid var(--border);
+}
+
+/* ── Grid ── */
+main {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  max-width: 960px;
+  margin: 0 auto;
+  width: 100%;
+  padding: 40px 40px 80px;
+}
+
+.section-label {
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 24px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 16px;
+}
+
+/* ── Cards ── */
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 24px;
+  text-decoration: none;
+  color: inherit;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
+  animation: fadeUp 0.4s ease both;
+}
+.card:hover {
+  border-color: var(--gold-dim);
+  transform: translateY(-3px);
+  box-shadow: 0 12px 32px rgba(0,0,0,0.4);
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.card-icon {
+  font-size: 1.8rem;
+  line-height: 1;
+}
+
+.card-name {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.3;
+}
+
+.card-desc {
+  font-size: 0.85rem;
+  font-weight: 300;
+  color: var(--muted);
+  line-height: 1.6;
+  flex: 1;
+}
+
+.card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 4px;
+}
+.tag {
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 2px;
+  background: rgba(74, 127, 165, 0.15);
+  color: var(--accent);
+  border: 1px solid rgba(74, 127, 165, 0.25);
+}
+
+.card-cta {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--gold);
+  letter-spacing: 0.06em;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+  transition: gap 0.15s;
+}
+.card:hover .card-cta { gap: 10px; }
+
+/* ── Empty / loading state ── */
+.state-msg {
+  grid-column: 1 / -1;
+  color: var(--muted);
+  font-size: 0.9rem;
+  font-style: italic;
+  padding: 24px 0;
+}
+
+/* ── Footer ── */
+footer {
+  position: relative;
+  z-index: 1;
+  border-top: 1px solid var(--border);
+  padding: 20px 40px;
+  max-width: 960px;
+  margin: 0 auto;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+footer span {
+  font-size: 0.75rem;
+  color: var(--muted);
+  letter-spacing: 0.04em;
+}
+#tool-count {
+  font-family: 'Source Sans 3', monospace;
+  font-size: 0.72rem;
+  color: var(--gold-dim);
+  letter-spacing: 0.06em;
+}
+
+/* ── Responsive ── */
+@media (max-width: 600px) {
+  header { padding: 40px 20px 32px; }
+  .divider { padding: 0 20px; }
+  main { padding: 32px 20px 60px; }
+  footer { padding: 16px 20px; flex-direction: column; align-items: flex-start; gap: 4px; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="eyebrow">herteljt · github.io</div>
+  <h1>Educator<br><em>Finance Tools</em></h1>
+  <p class="tagline">Free, browser-based tools to help teachers understand their pay, benefits, and financial options — no login required.</p>
+</header>
+
+<div class="divider"><hr></div>
+
+<main>
+  <div class="section-label">Available Tools</div>
+  <div class="grid" id="grid">
+    <div class="state-msg">Loading tools…</div>
+  </div>
+</main>
+
+<footer>
+  <span>educator-finance-tools · <a href="https://github.com/herteljt/educator-finance-tools" style="color:var(--muted);text-decoration:underline;text-underline-offset:3px;" target="_blank">github.com/herteljt</a></span>
+  <span id="tool-count"></span>
+</footer>
+
+<script>
+async function loadTools() {
+  const grid = document.getElementById('grid');
+  const countEl = document.getElementById('tool-count');
+
+  try {
+    const res = await fetch('tools.json?v=' + Date.now());
+    if (!res.ok) throw new Error('tools.json not found');
+    const tools = await res.json();
+
+    if (!tools.length) {
+      grid.innerHTML = '<div class="state-msg">No tools found yet.</div>';
+      return;
+    }
+
+    grid.innerHTML = '';
+    tools.forEach((tool, i) => {
+      const card = document.createElement('a');
+      card.href = tool.file;
+      card.className = 'card';
+      card.style.animationDelay = (i * 80) + 'ms';
+      card.innerHTML = `
+        <div class="card-icon">${tool.icon || '🔧'}</div>
+        <div class="card-name">${esc(tool.name)}</div>
+        <div class="card-desc">${esc(tool.description)}</div>
+        ${tool.tags?.length ? '<div class="card-tags">' + tool.tags.map(t => `<span class="tag">${esc(t)}</span>`).join('') + '</div>' : ''}
+        <div class="card-cta">Open tool →</div>
+      `;
+      grid.appendChild(card);
+    });
+
+    countEl.textContent = tools.length + ' tool' + (tools.length !== 1 ? 's' : '');
+  } catch (e) {
+    grid.innerHTML = '<div class="state-msg">Could not load tools. Make sure tools.json exists in the repo root.</div>';
+  }
+}
+
+function esc(str) {
+  return (str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+loadTools();
+</script>
+</body>
+</html>
