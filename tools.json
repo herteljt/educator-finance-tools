@@ -2,8 +2,12 @@
   {
     "file": "tool-handbook-analyzer.html",
     "name": "Handbook Analyzer",
-    "description": "Upload your district employee handbook and get an instant summary plus a Q&A chat. Surfaces leave policies, benefits, retirement options, and more.",
-    "icon": "📄",
-    "tags": ["benefits", "policy", "handbook"]
+    "description": "Upload your district employee handbook and get an instant summary plus a Q&amp;A chat. Surfaces leave policies, benefits, retirement options, and more.",
+    "icon": "\ud83d\udcc4",
+    "tags": [
+      "benefits",
+      "policy",
+      "handbook"
+    ]
   }
 ]
