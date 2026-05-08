@@ -1,0 +1,58 @@
+name: Update Tools Index
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'tool-*.html'
+
+permissions:
+  contents: write
+
+jobs:
+  update-tools-json:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Rebuild tools.json from tool-*.html files
+        run: |
+          python3 << 'EOF'
+          import os, json, re
+
+          tools = []
+          for fname in sorted(os.listdir('.')):
+              if not (fname.startswith('tool-') and fname.endswith('.html')):
+                  continue
+              with open(fname, encoding='utf-8') as f:
+                  html = f.read()
+
+              # Pull meta tags if present, else fall back to filename
+              name  = re.search(r'<meta\s+name="tool-name"\s+content="([^"]+)"', html)
+              desc  = re.search(r'<meta\s+name="tool-description"\s+content="([^"]+)"', html)
+              icon  = re.search(r'<meta\s+name="tool-icon"\s+content="([^"]+)"', html)
+              tags  = re.search(r'<meta\s+name="tool-tags"\s+content="([^"]+)"', html)
+
+              slug = fname[5:-5].replace('-', ' ').title()  # tool-foo-bar → Foo Bar
+
+              tools.append({
+                  'file':        fname,
+                  'name':        name.group(1)  if name  else slug,
+                  'description': desc.group(1)  if desc  else '',
+                  'icon':        icon.group(1)  if icon  else '🔧',
+                  'tags':        [t.strip() for t in tags.group(1).split(',')] if tags else [],
+              })
+
+          with open('tools.json', 'w') as f:
+              json.dump(tools, f, indent=2)
+          print(f"Wrote {len(tools)} tool(s) to tools.json")
+          EOF
+
+      - name: Commit updated tools.json
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add tools.json
+          git diff --cached --quiet || git commit -m "chore: update tools.json [skip ci]"
+          git push
