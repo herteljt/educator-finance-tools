@@ -420,7 +420,7 @@ button:disabled { opacity: 0.38; cursor: not-allowed; }
 <header>
   <div class="header-left">
     <h1>Handbook Analyzer</h1>
-    <div class="subtitle">Educator Finance Tools · v1.05</div>
+    <div class="subtitle">Educator Finance Tools · v1.11</div>
   </div>
   <div class="header-right">
     <div id="doc-status">No document loaded</div>
@@ -501,6 +501,17 @@ button:disabled { opacity: 0.38; cursor: not-allowed; }
     </div>
   </div>
 
+  <!-- Salary Detail -->
+  <div class="panel" id="salary-panel" style="display:none">
+    <div class="panel-header">
+      <span class="step-badge">SALARY</span>
+      <h2>Compensation Detail</h2>
+    </div>
+    <div class="panel-body">
+      <div id="salary-content"></div>
+    </div>
+  </div>
+
   <!-- Chat -->
   <div class="panel" id="chat-panel">
     <div class="panel-header">
@@ -515,6 +526,8 @@ button:disabled { opacity: 0.38; cursor: not-allowed; }
       <span class="chip" onclick="useChip(this)">What are my FMLA rights?</span>
       <span class="chip" onclick="useChip(this)">What 403(b) options are available?</span>
       <span class="chip" onclick="useChip(this)">Is there a longevity bonus?</span>
+      <span class="chip" onclick="useChip(this)">How does graduate education affect my pay?</span>
+      <span class="chip" onclick="useChip(this)">What extra duties come with additional pay?</span>
     </div>
     <div class="chat-input-area">
       <textarea id="user-input" placeholder="Ask anything about the handbook…" rows="1"
@@ -552,11 +565,7 @@ function saveKey() {
     errEl.textContent = 'Please paste your API key.';
     return;
   }
-  if (!val.startsWith('AIza')) {
-    errEl.textContent = 'Key should start with "AIza". Copy it directly from Google AI Studio.';
-    return;
-  }
-  if (val.length < 20) {
+  if (val.length < 10) {
     errEl.textContent = 'That key looks too short — make sure you copied the full key.';
     return;
   }
@@ -656,35 +665,66 @@ async function generateSummary() {
   panel.style.display = 'block';
   panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
-  const prompt = `You are reviewing a district employee handbook. Provide a structured summary for teachers. Use exactly these section headers (### for each). Be specific and concise. If a section has no relevant info, write "Not addressed in this handbook."
+  const prompt = `You are reviewing a district employee handbook. Provide a structured summary for teachers. Use exactly these section headers (### for each), in this exact order. Be specific and concise. If a section has no relevant info, write "Not addressed in this handbook."
 
 ### Document Overview
-One or two sentences: what this handbook covers and who it applies to.
+One or two sentences: what this handbook covers and who it applies to. Include the handbook year or date if it appears anywhere in the document (cover page, approval date, revision date, footer, etc.).
 
-### Key Policies at a Glance
-Bullet list of 6–8 must-know policies (attendance, technology, dress code, mandated reporting, etc.).
+### Salary & Compensation
+Report everything the handbook says about salary. Include specific dollar amounts if present.
+- Whether a salary schedule exists and where to find it, OR quote the general statement used if no schedule is provided
+- Pay increases for graduate degrees — include exact dollar amounts if listed, and flag any pre-approval requirements (some districts require administrator approval BEFORE starting the program — missing this can disqualify the raise)
+- Extra duty pay highlights — coaching, clubs, department chair, etc. Include amounts if a stipend schedule is in the handbook
+- Step increases or longevity pay
+If specific dollar amounts are not in the handbook, say so and note what document would contain them.
+
+### Health Benefits
+Health insurance options (medical, dental, vision). Who is eligible (minimum FTE required), when coverage starts, what percentage the district pays, and any FSA, HRA, or cash-in-lieu options.
 
 ### Leave & Time Off
 Sick leave, personal leave, FMLA, bereavement, and other leave — include number of days and how to request each.
 
-### Health Benefits
-Health insurance options (medical, dental, vision). Who is eligible, when coverage starts, district premium contributions, HSA or FSA options.
-
 ### Retirement Benefits
-- Is there a 403(b) plan? Can employees make their own contributions?
-- Is there a 457(b) plan available?
+- Is there a 403(b) plan (also called a TSA or Tax Sheltered Annuity)? Can employees make voluntary contributions via payroll deduction? Are pre-tax and Roth options available?
+- Is there a 457(b) plan (sometimes called the Wisconsin Deferred Compensation program or WDC)?
 - Does the district pay a longevity bonus? If so, what are the terms?
-- Is there any district-funded health insurance available after retirement?
+- Is there any district-funded health benefit or HRA available after retirement?
+- Note: WRS (Wisconsin Retirement System) is the state pension — most Wisconsin public school teachers are automatically enrolled. It is separate from voluntary 403(b) or 457(b) plans.
 State explicitly if any of these are not mentioned.
-
-### Conduct & Expectations
-Professional conduct standards, technology/social media policies, prohibited actions.
-
-### Who to Contact / How to Report
-Key contacts, how to report absences, accidents, grievances, or harassment.
 
 ### Important Dates & Deadlines
 Specific dates, deadlines, or enrollment windows. Omit this section if none found.
+
+### What's Notable
+Flag items that are unusual, specific, or financially significant — things a teacher would be glad to know and might not find in a typical handbook. Look for:
+- Specific dollar amounts for anything (salary increases, stipends, bonuses, payouts)
+- A no-absence bonus
+- Unused leave payout at retirement — include rates and years-of-service thresholds
+- Pre-approval requirements for graduate degree pay increases
+- Cash-in-lieu of health insurance option
+- District HRA contributions (quarterly deposits, etc.)
+- Post-retirement health benefits of any kind
+- 457(b) / deferred compensation availability
+- Liquidated damages for late resignation (penalties if a teacher resigns after a certain date)
+- Any other policy that is specific, concrete, or financially meaningful
+Format as a bullet list. If nothing notable is found, write "Nothing unusual found — this handbook covers standard topics at a typical level of detail."
+
+### What's Missing
+Check for the following items that are typically found in district handbooks. List any that are NOT addressed or are only vaguely referenced without useful detail:
+- Sick leave (number of days)
+- Personal leave (number of days)
+- FMLA rights
+- Grievance procedure
+- Salary schedule or clear salary determination policy
+- 403(b) / tax-sheltered annuity option
+- Health insurance (medical)
+- Dental insurance
+- Vision insurance
+- Mandated reporting policy
+- Technology / acceptable use policy
+- Attendance and absence reporting procedure
+- Evaluation process
+Format as a bullet list of what's missing or vague. If everything is covered, write "This handbook addresses all standard topics."
 
 Keep the tone plain and practical. No legal jargon.`;
 
@@ -697,11 +737,60 @@ Keep the tone plain and practical. No legal jargon.`;
     document.getElementById('reset-row').style.display = 'flex';
     addMessage('assistant', 'Summary is ready above. Ask me anything about the handbook.');
     document.getElementById('chat-panel').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    generateSalaryDetail();
   } catch (err) {
     content.innerHTML = `<p style="color:var(--accent);font-size:.87rem">Error: ${esc(err.message)}</p>`;
     const btn = document.getElementById('analyze-btn');
     btn.disabled    = false;
     btn.textContent = 'Try Again →';
+  }
+}
+
+// ── Salary Detail ──
+async function generateSalaryDetail() {
+  const panel   = document.getElementById('salary-panel');
+  const content = document.getElementById('salary-content');
+
+  panel.style.display = 'block';
+  content.innerHTML = `<div class="thinking-row"><div class="dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>Analyzing compensation details…</div>`;
+
+  const prompt = `You are reviewing a district employee handbook. Extract all compensation-related information in detail. Use these exact section headers (### for each).
+
+### Base Salary
+Does the handbook include a salary schedule with specific dollar amounts? If yes, summarize it — include starting salary, top of scale, and how many steps. If not, quote or paraphrase exactly what the handbook says about how salaries are determined (even vague language like "based on market competitiveness, experience, and performance" is worth capturing). Note that actual salary figures are typically in a separate salary schedule or master contract if not found here — suggest the teacher ask HR.
+
+### Graduate Education & Lane Changes
+Does completing a master's degree, specialist degree, additional graduate credits, or a doctorate increase pay? 
+- Include the exact dollar amount of any increase (e.g. "$3,000 base salary increase")
+- Note any pre-approval requirements — some districts require superintendent or administrator approval BEFORE starting the degree program. If this requirement exists, flag it clearly as it is easy to miss and can disqualify the pay increase.
+- Note whether the degree must be in the teacher's licensure area or if other fields are accepted
+- List any forms the teacher needs to complete (e.g. a pre-approval form)
+If not mentioned, say so clearly.
+
+### Extra Duty Pay
+List every role, assignment, or duty that comes with additional compensation. Include specific dollar amounts wherever they appear in the handbook — coaching stipends, club advising, department chair, curriculum work, mentoring, summer work, after-school programs, etc. If a multi-level stipend schedule exists (e.g. different amounts by years of experience), summarize the range. If amounts are not in the handbook, note where they are typically found.
+
+### Step Increases & Experience
+How does experience affect pay? Are there annual step increases? Is there a max number of steps? Any freeze, delay, or earning conditions mentioned? If the handbook is silent on this, say so and note that step schedules are typically in the master contract.
+
+### Wisconsin Retirement System (WRS)
+Note: WRS is the Wisconsin state pension — most Wisconsin public school teachers are automatically enrolled. It is NOT optional in the way a 403(b) or 457(b) is.
+- What does the handbook say about WRS contributions? Does the district pay the employer share? Does the employee pay their own share?
+- Is there a 403(b) plan (Tax Sheltered Annuity / TSA)? Are contributions voluntary and employee-funded via payroll deduction? Are both pre-tax and Roth options available?
+- Is there a 457(b) plan (often the Wisconsin Deferred Compensation / WDC program)? Is it voluntary?
+- Is there an unused leave payout at retirement? If so, what are the terms?
+- Is there any district-funded health benefit available after retirement (e.g. HRA POP — Health Reimbursement Arrangement)?
+
+### Other Compensation
+Anything else compensation-related: mileage reimbursement rates, meal reimbursement limits, signing bonuses, no-absence bonuses, tuition reimbursement, or any other payments. Include specific dollar amounts where present.
+
+For each section: if the information is not in the handbook, say so explicitly and note where the teacher would typically find it. Be specific — include dollar amounts and quote the handbook directly where possible.`;
+
+  try {
+    const response = await callGemini(prompt);
+    content.innerHTML = buildAccordion(response);
+  } catch (err) {
+    content.innerHTML = `<p style="color:var(--accent);font-size:.87rem">Error loading salary detail: ${esc(err.message)}</p>`;
   }
 }
 
@@ -789,29 +878,43 @@ function removeThinking(id) {
 
 // ── Reset ──
 function resetTool() {
-  apiKey = pdfBase64 = fileName = '';
+  // Preserve apiKey — teacher shouldn't have to re-enter it
+  pdfBase64 = '';
+  fileName  = '';
   stagedFile = null;
   chatHistory = [];
   isThinking  = false;
 
+  // Clear panel contents so stale results don't linger
+  document.getElementById('summary-content').innerHTML  = '';
+  document.getElementById('salary-content').innerHTML   = '';
+  document.getElementById('messages').innerHTML         = '';
+
+  // Hide result panels
   document.getElementById('summary-panel').style.display = 'none';
+  document.getElementById('salary-panel').style.display  = 'none';
   document.getElementById('chat-panel').style.display    = 'none';
   document.getElementById('reset-row').style.display     = 'none';
-  document.getElementById('messages').innerHTML          = '';
+
+  // Reset chat
   document.getElementById('suggestions').style.display  = 'flex';
   document.getElementById('send-btn').disabled          = true;
+
+  // Reset analyze button
   document.getElementById('analyze-btn').disabled       = true;
   document.getElementById('analyze-btn').textContent    = 'Analyze Handbook →';
   document.getElementById('analyze-error').textContent  = '';
+
+  // Reset upload area
   document.getElementById('upload-error').textContent   = '';
-  document.getElementById('key-success').textContent    = '';
-  document.getElementById('key-error').textContent      = '';
-  document.getElementById('api-key-input').value        = '';
   document.getElementById('file-input').value           = '';
   document.getElementById('dz-label').innerHTML         = '<strong>Click to upload</strong> or drag and drop';
   document.getElementById('dz-sub').textContent         = 'PDF only · Processed entirely in your browser';
+
+  // Reset header status
   document.getElementById('doc-status').textContent     = 'No document loaded';
   document.getElementById('doc-status').classList.remove('loaded');
+
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
@@ -843,13 +946,13 @@ function buildAccordion(text) {
 
   const icons = {
     'Document':    '📋',
-    'Key Policies':'📌',
-    'Leave':       '🗓️',
+    'Salary':      '💰',
     'Health':      '🏥',
+    'Leave':       '🗓️',
     'Retirement':  '🏦',
-    'Conduct':     '✅',
-    'Contact':     '📞',
     'Dates':       '📅',
+    'Notable':     '⭐',
+    'Missing':     '⚠️',
   };
   function getIcon(t) {
     for (const [k, v] of Object.entries(icons)) if (t.includes(k)) return v + ' ';
