@@ -1,5 +1,22 @@
 [
   {
+    "file": "tool-debt-projector.html",
+    "name": "Debt Projector & PSLF Tracker",
+    "description": "Project debt payoff timelines, compare payoff strategies, visualize balance curves, and track PSLF qualifying payments.",
+    "icon": "\ud83d\udcc9",
+    "tags": [
+      "debt",
+      "loans",
+      "mortgage",
+      "credit card",
+      "payoff",
+      "interest",
+      "projection",
+      "PSLF",
+      "forgiveness"
+    ]
+  },
+  {
     "file": "tool-handbook-analyzer.html",
     "name": "Handbook Analyzer",
     "description": "Upload your district employee handbook and get an instant summary plus a Q&amp;A chat. Surfaces leave policies, benefits, retirement options, and more.",
