@@ -413,6 +413,75 @@ button:disabled { opacity: 0.38; cursor: not-allowed; }
   #doc-status { display: none; }
   .back-link { display: none; }
 }
+
+/* TABS */
+.tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 2px solid var(--border);
+  margin-bottom: 18px;
+}
+.tab-btn {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 8px 16px;
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+  border-radius: 0;
+  transform: none;
+}
+.tab-btn:active { transform: none; }
+.tab-btn.active { color: var(--ink); border-bottom-color: var(--ink); }
+.tab-btn:hover:not(.active) { color: var(--ink); }
+.tab-pane { display: none; }
+.tab-pane.active { display: block; }
+
+/* URL INPUT */
+.url-row {
+  display: flex;
+  gap: 10px;
+  align-items: stretch;
+}
+#url-input {
+  flex: 1;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.82rem;
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  background: var(--paper);
+  color: var(--ink);
+  outline: none;
+  transition: border-color 0.15s;
+}
+#url-input:focus { border-color: var(--ink); }
+#url-input::placeholder { color: var(--muted); }
+
+/* PASTE TEXTAREA */
+#paste-input {
+  width: 100%;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.78rem;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  background: var(--paper);
+  color: var(--ink);
+  outline: none;
+  resize: vertical;
+  min-height: 140px;
+  line-height: 1.55;
+  transition: border-color 0.15s;
+}
+#paste-input:focus { border-color: var(--ink); }
+#paste-input::placeholder { color: var(--muted); font-style: italic; }
 </style>
 </head>
 <body>
@@ -420,7 +489,7 @@ button:disabled { opacity: 0.38; cursor: not-allowed; }
 <header>
   <div class="header-left">
     <h1>Handbook Analyzer</h1>
-    <div class="subtitle">Educator Finance Tools · v1.11</div>
+    <div class="subtitle">Educator Finance Tools · v1.12</div>
   </div>
   <div class="header-right">
     <div id="doc-status">No document loaded</div>
@@ -463,30 +532,58 @@ button:disabled { opacity: 0.38; cursor: not-allowed; }
     </div>
   </div>
 
-  <!-- Step 2: Upload -->
+  <!-- Step 2: Load Handbook -->
   <div class="panel">
     <div class="panel-header">
       <span class="step-badge">STEP 2</span>
-      <h2>Upload Your District Handbook (PDF)</h2>
+      <h2>Load Your District Handbook</h2>
     </div>
     <div class="panel-body">
-      <div class="drop-zone" id="drop-zone"
-        onclick="document.getElementById('file-input').click()"
-        ondragover="handleDragOver(event)"
-        ondragleave="handleDragLeave(event)"
-        ondrop="handleDrop(event)">
-        <input type="file" id="file-input" accept=".pdf" onchange="handleFileSelect(event)" />
-        <div class="dz-icon">📄</div>
-        <div class="dz-label" id="dz-label"><strong>Click to upload</strong> or drag and drop</div>
-        <div class="dz-sub" id="dz-sub">PDF only · Processed entirely in your browser</div>
+
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('pdf', this)">📄 PDF Upload</button>
+        <button class="tab-btn" onclick="switchTab('url', this)">🔗 Web Page URL</button>
+        <button class="tab-btn" onclick="switchTab('paste', this)">📋 Paste Text</button>
       </div>
-      <div class="error-line" id="upload-error"></div>
+
+      <!-- PDF Tab -->
+      <div class="tab-pane active" id="tab-pdf">
+        <div class="drop-zone" id="drop-zone"
+          onclick="document.getElementById('file-input').click()"
+          ondragover="handleDragOver(event)"
+          ondragleave="handleDragLeave(event)"
+          ondrop="handleDrop(event)">
+          <input type="file" id="file-input" accept=".pdf" onchange="handleFileSelect(event)" />
+          <div class="dz-icon">📄</div>
+          <div class="dz-label" id="dz-label"><strong>Click to upload</strong> or drag and drop</div>
+          <div class="dz-sub" id="dz-sub">PDF only · Processed entirely in your browser</div>
+        </div>
+        <div class="error-line" id="upload-error"></div>
+      </div>
+
+      <!-- URL Tab -->
+      <div class="tab-pane" id="tab-url">
+        <p style="font-size:0.85rem;color:var(--muted);margin-bottom:12px;line-height:1.6;">Paste the URL of a webpage containing the handbook. Works best with publicly accessible pages. If the page requires a login, use the Paste Text tab instead.</p>
+        <div class="url-row">
+          <input type="text" id="url-input" placeholder="https://www.district.k12.wi.us/employee-handbook" autocomplete="off" oninput="stageUrl()" />
+        </div>
+        <div class="error-line" id="url-error"></div>
+      </div>
+
+      <!-- Paste Tab -->
+      <div class="tab-pane" id="tab-paste">
+        <p style="font-size:0.85rem;color:var(--muted);margin-bottom:12px;line-height:1.6;">Copy the full text of the handbook and paste it below. Works for any webpage, PDF, or document.</p>
+        <textarea id="paste-input" placeholder="Paste handbook text here…" oninput="stagePaste()"></textarea>
+        <div class="error-line" id="paste-error"></div>
+      </div>
+
       <div class="analyze-wrap">
         <button class="btn-accent" id="analyze-btn" onclick="startAnalysis()" disabled>
           Analyze Handbook →
         </button>
       </div>
       <div class="error-line" id="analyze-error"></div>
+
     </div>
   </div>
 
@@ -544,12 +641,57 @@ button:disabled { opacity: 0.38; cursor: not-allowed; }
 
 <script>
 // ── State ──
-let apiKey    = '';
-let pdfBase64 = '';
-let fileName  = '';
-let stagedFile = null;
+let apiKey      = '';
+let pdfBase64   = '';
+let handbookText = '';   // for URL/paste mode
+let inputMode   = 'pdf'; // 'pdf' | 'url' | 'paste'
+let fileName    = '';
+let stagedFile  = null;
 let chatHistory = [];
 let isThinking  = false;
+
+// ── Tab switching ──
+function switchTab(mode, btn) {
+  inputMode = mode;
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('tab-' + mode).classList.add('active');
+  // Reset staged content when switching tabs
+  stagedFile   = null;
+  pdfBase64    = '';
+  handbookText = '';
+  document.getElementById('analyze-btn').disabled = true;
+  document.getElementById('analyze-error').textContent = '';
+}
+
+// ── URL staging ──
+function stageUrl() {
+  const val = document.getElementById('url-input').value.trim();
+  const errEl = document.getElementById('url-error');
+  errEl.textContent = '';
+  if (val.startsWith('http') && val.length > 10) {
+    fileName = val.replace(/^https?:\/\//, '').replace(/\//g, ' › ');
+    if (apiKey) document.getElementById('analyze-btn').disabled = false;
+    else document.getElementById('analyze-error').textContent = 'Save your API key in Step 1 first.';
+  } else {
+    document.getElementById('analyze-btn').disabled = true;
+  }
+}
+
+// ── Paste staging ──
+function stagePaste() {
+  const val = document.getElementById('paste-input').value.trim();
+  const errEl = document.getElementById('paste-error');
+  errEl.textContent = '';
+  if (val.length > 100) {
+    fileName = 'Pasted handbook text';
+    if (apiKey) document.getElementById('analyze-btn').disabled = false;
+    else document.getElementById('analyze-error').textContent = 'Save your API key in Step 1 first.';
+  } else {
+    document.getElementById('analyze-btn').disabled = true;
+  }
+}
 
 // ── Save key ──
 function saveKey() {
@@ -621,38 +763,82 @@ function stageFile(file) {
 }
 
 // ── Start analysis ──
-function startAnalysis() {
-  const errEl  = document.getElementById('analyze-error');
-  const btn    = document.getElementById('analyze-btn');
+async function startAnalysis() {
+  const errEl = document.getElementById('analyze-error');
+  const btn   = document.getElementById('analyze-btn');
   errEl.textContent = '';
 
   if (!apiKey) {
     errEl.textContent = 'Save your API key in Step 1 first.';
     return;
   }
-  if (!stagedFile) {
-    errEl.textContent = 'Upload a PDF file first.';
-    return;
-  }
 
-  btn.disabled    = true;
-  btn.textContent = 'Reading PDF…';
-  fileName = stagedFile.name.replace(/\.[^/.]+$/, '').replace(/[_-]/g, ' ');
+  btn.disabled = true;
 
-  const reader = new FileReader();
-  reader.onload = function(e) {
-    pdfBase64 = e.target.result.split(',')[1];
-    document.getElementById('doc-status').textContent = '📄 ' + stagedFile.name;
+  if (inputMode === 'pdf') {
+    if (!stagedFile) {
+      errEl.textContent = 'Upload a PDF file first.';
+      btn.disabled = false;
+      return;
+    }
+    btn.textContent = 'Reading PDF…';
+    fileName = stagedFile.name.replace(/\.[^/.]+$/, '').replace(/[_-]/g, ' ');
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      pdfBase64 = e.target.result.split(',')[1];
+      handbookText = '';
+      document.getElementById('doc-status').textContent = '📄 ' + stagedFile.name;
+      document.getElementById('doc-status').classList.add('loaded');
+      btn.textContent = 'Analyzing…';
+      generateSummary();
+    };
+    reader.onerror = function() {
+      errEl.textContent = 'Could not read the file. Try again.';
+      btn.disabled    = false;
+      btn.textContent = 'Analyze Handbook →';
+    };
+    reader.readAsDataURL(stagedFile);
+
+  } else if (inputMode === 'url') {
+    const url = document.getElementById('url-input').value.trim();
+    if (!url) {
+      errEl.textContent = 'Paste a URL first.';
+      btn.disabled = false;
+      return;
+    }
+    btn.textContent = 'Fetching page…';
+    try {
+      const jinaUrl = 'https://r.jina.ai/' + url;
+      const res = await fetch(jinaUrl, { headers: { 'Accept': 'text/plain' } });
+      if (!res.ok) throw new Error('Could not fetch page (status ' + res.status + ')');
+      const text = await res.text();
+      if (!text || text.length < 200) throw new Error('Page returned too little content. Try the Paste Text tab instead.');
+      handbookText = text;
+      pdfBase64 = '';
+      document.getElementById('doc-status').textContent = '🔗 ' + url.replace(/^https?:\/\//, '').slice(0, 40);
+      document.getElementById('doc-status').classList.add('loaded');
+      btn.textContent = 'Analyzing…';
+      generateSummary();
+    } catch(e) {
+      errEl.textContent = e.message;
+      btn.disabled    = false;
+      btn.textContent = 'Analyze Handbook →';
+    }
+
+  } else if (inputMode === 'paste') {
+    const text = document.getElementById('paste-input').value.trim();
+    if (text.length < 100) {
+      errEl.textContent = 'Please paste more text — this looks too short.';
+      btn.disabled = false;
+      return;
+    }
+    handbookText = text;
+    pdfBase64 = '';
+    document.getElementById('doc-status').textContent = '📋 Pasted text';
     document.getElementById('doc-status').classList.add('loaded');
     btn.textContent = 'Analyzing…';
     generateSummary();
-  };
-  reader.onerror = function() {
-    errEl.textContent = 'Could not read the file. Try again.';
-    btn.disabled    = false;
-    btn.textContent = 'Analyze Handbook →';
-  };
-  reader.readAsDataURL(stagedFile);
+  }
 }
 
 // ── Summary ──
@@ -905,9 +1091,17 @@ function resetTool() {
   document.getElementById('analyze-btn').textContent    = 'Analyze Handbook →';
   document.getElementById('analyze-error').textContent  = '';
 
-  // Reset upload area
+  // Reset input mode and all tabs
+  inputMode    = 'pdf';
+  handbookText = '';
+  document.querySelectorAll('.tab-btn').forEach((b, i) => b.classList.toggle('active', i === 0));
+  document.querySelectorAll('.tab-pane').forEach((p, i) => p.classList.toggle('active', i === 0));
   document.getElementById('upload-error').textContent   = '';
+  document.getElementById('url-error').textContent      = '';
+  document.getElementById('paste-error').textContent    = '';
   document.getElementById('file-input').value           = '';
+  document.getElementById('url-input').value            = '';
+  document.getElementById('paste-input').value          = '';
   document.getElementById('dz-label').innerHTML         = '<strong>Click to upload</strong> or drag and drop';
   document.getElementById('dz-sub').textContent         = 'PDF only · Processed entirely in your browser';
 
@@ -929,9 +1123,15 @@ async function callGemini(prompt) {
 
   const parts = [];
   if (pdfBase64) {
+    // PDF mode — send file inline
     parts.push({ inlineData: { mimeType: 'application/pdf', data: pdfBase64 } });
+    parts.push({ text: prompt });
+  } else if (handbookText) {
+    // URL or paste mode — embed text directly in prompt
+    parts.push({ text: 'Here is the full text of the handbook:\n\n' + handbookText + '\n\n---\n\n' + prompt });
+  } else {
+    parts.push({ text: prompt });
   }
-  parts.push({ text: prompt });
 
   const result = await model.generateContent({ contents: [{ role: 'user', parts }] });
   const text = result.response.text();
