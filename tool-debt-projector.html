@@ -1,0 +1,1196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="tool-name" content="Debt Projector & PSLF Tracker">
+  <meta name="tool-description" content="Project debt payoff timelines, compare payoff strategies, visualize balance curves, and track PSLF qualifying payments.">
+  <meta name="tool-icon" content="📉">
+  <meta name="tool-tags" content="debt, loans, mortgage, credit card, payoff, interest, projection, PSLF, forgiveness">
+
+  <title>Debt Projector & PSLF Tracker — Educator Finance Tools</title>
+  <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --ink:          #1c1c2e;
+      --paper:        #f4f0e8;
+      --cream:        #ece7da;
+      --white:        #ffffff;
+      --accent:       #8b1a1a;
+      --accent-light: #f0dede;
+      --muted:        #7a7262;
+      --border:       #d4cebe;
+      --green:        #2d5a3d;
+      --green-light:  #d8ece1;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Lora', Georgia, serif;
+      background: var(--paper);
+      color: var(--ink);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      background: var(--ink);
+      padding: 14px 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 3px solid var(--accent);
+      flex-shrink: 0;
+    }
+    .header-left { display: flex; flex-direction: column; gap: 2px; }
+    header h1 { color: var(--paper); font-size: 1.1rem; font-weight: 600; letter-spacing: 0.02em; }
+    .subtitle { font-family: 'DM Mono', monospace; font-size: 0.62rem; color: #5a5a7a; letter-spacing: 0.1em; text-transform: uppercase; }
+    .header-right { display: flex; align-items: center; gap: 14px; }
+    .back-link { font-family: 'DM Mono', monospace; font-size: 0.68rem; color: #5a5a7a; text-decoration: none; letter-spacing: 0.06em; transition: color 0.15s; }
+    .back-link:hover { color: var(--paper); }
+
+    main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      max-width: 960px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 28px 24px 60px;
+      gap: 20px;
+    }
+
+    .panel { background: var(--white); border: 1px solid var(--border); border-radius: 4px; overflow: hidden; }
+    .panel-header { background: var(--cream); border-bottom: 1px solid var(--border); padding: 11px 20px; display: flex; align-items: center; gap: 10px; }
+    .panel-header h2 { font-size: 0.88rem; font-weight: 600; }
+    .panel-body { padding: 20px; }
+    .step-badge { font-family: 'DM Mono', monospace; font-size: 0.62rem; background: var(--ink); color: var(--paper); padding: 2px 8px; border-radius: 2px; letter-spacing: 0.06em; flex-shrink: 0; }
+    .info-badge { font-family: 'DM Mono', monospace; font-size: 0.62rem; background: var(--green); color: white; padding: 2px 8px; border-radius: 2px; letter-spacing: 0.06em; flex-shrink: 0; }
+
+    button { font-family: 'Lora', serif; font-size: 0.85rem; padding: 10px 18px; border: none; border-radius: 3px; cursor: pointer; transition: opacity 0.15s, transform 0.1s; white-space: nowrap; }
+    button:active { transform: scale(0.98); }
+    button:disabled { opacity: 0.38; cursor: not-allowed; }
+    .btn-primary { background: var(--ink); color: var(--paper); }
+    .btn-primary:hover:not(:disabled) { opacity: 0.82; }
+    .btn-accent { background: var(--accent); color: white; }
+    .btn-accent:hover:not(:disabled) { opacity: 0.85; }
+    .btn-ghost { background: transparent; border: 1px solid var(--border); color: var(--muted); }
+    .btn-ghost:hover:not(:disabled) { border-color: var(--ink); color: var(--ink); }
+    .btn-green { background: var(--green); color: white; }
+    .btn-green:hover:not(:disabled) { opacity: 0.85; }
+    .btn-small { font-size: 0.75rem; padding: 6px 12px; }
+
+    input[type="text"], input[type="number"], input[type="month"], select, textarea {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.82rem;
+      padding: 9px 12px;
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      background: var(--paper);
+      color: var(--ink);
+      outline: none;
+      transition: border-color 0.15s;
+      width: 100%;
+    }
+    input:focus, select:focus, textarea:focus { border-color: var(--ink); }
+
+    .error-line { font-family: 'DM Mono', monospace; font-size: 0.74rem; color: var(--accent); margin-top: 8px; min-height: 18px; }
+    .success-line { font-family: 'DM Mono', monospace; font-size: 0.74rem; color: var(--green); margin-top: 6px; min-height: 18px; }
+
+    /* Debt table */
+    .debt-table-wrap { overflow-x: auto; }
+    .debt-table { width: 100%; border-collapse: collapse; min-width: 680px; }
+    .debt-table th { font-family: 'DM Mono', monospace; font-size: 0.65rem; letter-spacing: 0.07em; text-transform: uppercase; color: var(--muted); padding: 6px 8px; text-align: left; border-bottom: 1px solid var(--border); background: var(--cream); }
+    .debt-table td { padding: 6px 6px; vertical-align: middle; }
+    .debt-table tr:not(:last-child) td { border-bottom: 1px solid var(--cream); }
+    .debt-table td input, .debt-table td select { padding: 8px 10px; font-size: 0.79rem; }
+    .remove-btn { font-size: 0.7rem; padding: 5px 9px; background: transparent; border: 1px solid var(--border); color: var(--muted); border-radius: 3px; cursor: pointer; }
+    .remove-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .add-debt-row { display: flex; align-items: center; gap: 12px; margin-top: 14px; flex-wrap: wrap; }
+    .add-debt-row p { font-size: 0.82rem; color: var(--muted); font-style: italic; }
+
+    /* Strategy */
+    .strategy-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    @media (max-width: 580px) { .strategy-grid { grid-template-columns: 1fr; } }
+    .strategy-card { border: 2px solid var(--border); border-radius: 4px; padding: 14px 16px; cursor: pointer; transition: border-color 0.15s, background 0.15s; }
+    .strategy-card:hover { border-color: var(--ink); }
+    .strategy-card.selected { border-color: var(--ink); background: var(--cream); }
+    .strategy-card input[type="radio"] { display: none; }
+    .strategy-card .s-title { font-size: 0.88rem; font-weight: 600; margin-bottom: 4px; }
+    .strategy-card .s-desc { font-size: 0.78rem; color: var(--muted); font-style: italic; }
+    .extra-payment-row { display: flex; align-items: center; gap: 12px; margin-top: 16px; flex-wrap: wrap; }
+    .extra-payment-row label { font-family: 'DM Mono', monospace; font-size: 0.72rem; color: var(--muted); letter-spacing: 0.04em; white-space: nowrap; }
+    .extra-payment-row input { max-width: 160px; }
+    .extra-note { font-size: 0.78rem; color: var(--muted); font-style: italic; }
+    #custom-payments-wrap { margin-top: 16px; display: none; }
+    .custom-pay-table { width: 100%; border-collapse: collapse; }
+    .custom-pay-table th { font-family: 'DM Mono', monospace; font-size: 0.65rem; color: var(--muted); letter-spacing: 0.07em; text-transform: uppercase; padding: 6px 8px; border-bottom: 1px solid var(--border); background: var(--cream); text-align: left; }
+    .custom-pay-table td { padding: 7px 8px; border-bottom: 1px solid var(--cream); vertical-align: middle; }
+    .custom-pay-table td:first-child { font-size: 0.85rem; }
+    .custom-pay-table td input { max-width: 140px; }
+
+    /* Slider */
+    .slider-section { background: var(--cream); border: 1px solid var(--border); border-radius: 4px; padding: 16px 20px; margin-bottom: 20px; }
+    .slider-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px; flex-wrap: wrap; gap: 6px; }
+    .slider-label-txt { font-family: 'DM Mono', monospace; font-size: 0.7rem; color: var(--muted); letter-spacing: 0.07em; text-transform: uppercase; }
+    .slider-value-txt { font-family: 'DM Mono', monospace; font-size: 1.1rem; font-weight: 500; color: var(--ink); }
+    input[type="range"] { width: 100%; accent-color: var(--accent); cursor: pointer; height: 4px; margin-bottom: 6px; }
+    .slider-ticks { display: flex; justify-content: space-between; }
+    .slider-ticks span { font-family: 'DM Mono', monospace; font-size: 0.6rem; color: var(--muted); }
+    .slider-impact { display: flex; gap: 20px; margin-top: 12px; flex-wrap: wrap; }
+    .impact-item { display: flex; flex-direction: column; gap: 2px; }
+    .impact-label { font-family: 'DM Mono', monospace; font-size: 0.6rem; color: var(--muted); letter-spacing: 0.06em; text-transform: uppercase; }
+    .impact-val { font-family: 'DM Mono', monospace; font-size: 0.88rem; font-weight: 500; }
+    .impact-val.green { color: var(--green); }
+    .impact-val.red { color: var(--accent); }
+
+    /* Summary cards */
+    .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(155px, 1fr)); gap: 12px; margin-bottom: 20px; }
+    .summary-card { background: var(--cream); border: 1px solid var(--border); border-radius: 4px; padding: 14px 16px; }
+    .summary-card .sc-label { font-family: 'DM Mono', monospace; font-size: 0.62rem; color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 5px; }
+    .summary-card .sc-value { font-size: 1.1rem; font-weight: 600; color: var(--ink); }
+    .summary-card .sc-value.red { color: var(--accent); }
+    .summary-card .sc-value.green { color: var(--green); }
+
+    /* Per-debt */
+    .debt-result-table { width: 100%; border-collapse: collapse; font-size: 0.83rem; }
+    .debt-result-table th { font-family: 'DM Mono', monospace; font-size: 0.62rem; color: var(--muted); letter-spacing: 0.07em; text-transform: uppercase; padding: 7px 10px; border-bottom: 1px solid var(--border); background: var(--cream); text-align: right; }
+    .debt-result-table th:first-child { text-align: left; }
+    .debt-result-table td { padding: 8px 10px; border-bottom: 1px solid var(--cream); text-align: right; }
+    .debt-result-table td:first-child { text-align: left; font-weight: 600; }
+    .type-tag { font-family: 'DM Mono', monospace; font-size: 0.6rem; background: var(--paper); border: 1px solid var(--border); border-radius: 2px; padding: 1px 5px; color: var(--muted); margin-left: 6px; }
+
+    /* Chart */
+    .chart-wrap { position: relative; width: 100%; height: 340px; }
+    canvas#balance-chart { display: block; }
+    .chart-legend { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
+    .legend-item { display: flex; align-items: center; gap: 6px; font-size: 0.78rem; }
+    .legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+
+    /* Amort */
+    .amort-controls { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; flex-wrap: wrap; }
+    .amort-controls label { font-family: 'DM Mono', monospace; font-size: 0.72rem; color: var(--muted); letter-spacing: 0.04em; }
+    .amort-controls select { max-width: 220px; }
+    .amort-table-wrap { overflow-x: auto; max-height: 400px; overflow-y: auto; }
+    .amort-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; min-width: 500px; }
+    .amort-table thead th { font-family: 'DM Mono', monospace; font-size: 0.62rem; color: var(--muted); letter-spacing: 0.07em; text-transform: uppercase; padding: 7px 10px; border-bottom: 2px solid var(--border); background: var(--cream); text-align: right; position: sticky; top: 0; }
+    .amort-table thead th:first-child { text-align: left; }
+    .amort-table tbody td { padding: 6px 10px; border-bottom: 1px solid var(--cream); text-align: right; }
+    .amort-table tbody td:first-child { text-align: left; font-family: 'DM Mono', monospace; font-size: 0.75rem; }
+    .amort-table .year-row td { background: var(--cream); font-weight: 600; font-family: 'DM Mono', monospace; font-size: 0.72rem; }
+    .amort-table .paid-off td { background: var(--green-light); color: var(--green); font-style: italic; }
+
+    /* Annual */
+    .annual-table-wrap { overflow-x: auto; }
+    .annual-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+    .annual-table th { font-family: 'DM Mono', monospace; font-size: 0.62rem; color: var(--muted); letter-spacing: 0.07em; text-transform: uppercase; padding: 7px 10px; border-bottom: 1px solid var(--border); background: var(--cream); text-align: right; }
+    .annual-table th:first-child { text-align: left; }
+    .annual-table td { padding: 7px 10px; border-bottom: 1px solid var(--cream); text-align: right; }
+    .annual-table td:first-child { text-align: left; font-family: 'DM Mono', monospace; }
+    .annual-table tr:last-child td { background: var(--cream); font-weight: 600; }
+
+    /* Tabs */
+    .tab-bar { display: flex; gap: 0; border-bottom: 1px solid var(--border); margin-bottom: 20px; flex-wrap: wrap; }
+    .tab-btn { font-family: 'DM Mono', monospace; font-size: 0.72rem; letter-spacing: 0.05em; padding: 9px 16px; background: transparent; border: none; border-bottom: 2px solid transparent; color: var(--muted); cursor: pointer; transition: color 0.15s, border-color 0.15s; }
+    .tab-btn:hover { color: var(--ink); }
+    .tab-btn.active { color: var(--ink); border-bottom-color: var(--accent); font-weight: 600; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    .hidden { display: none !important; }
+
+    /* PSLF */
+    .pslf-bar-track { background: var(--cream); border: 1px solid var(--border); border-radius: 3px; height: 18px; overflow: hidden; margin-bottom: 16px; }
+    .pslf-bar-fill { height: 100%; background: var(--green); border-radius: 2px; transition: width 0.4s ease; }
+    .pslf-prog-label { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }
+    .pslf-big { font-size: 1.7rem; font-weight: 600; color: var(--green); font-family: 'DM Mono', monospace; }
+    .pslf-denom { font-size: 0.95rem; color: var(--muted); font-family: 'DM Mono', monospace; }
+    .pslf-pct { font-family: 'DM Mono', monospace; font-size: 0.78rem; color: var(--muted); }
+
+    .pslf-tab-bar { display: flex; border-bottom: 1px solid var(--border); margin-bottom: 16px; flex-wrap: wrap; }
+    .pslf-tab-btn { font-family: 'DM Mono', monospace; font-size: 0.68rem; letter-spacing: 0.05em; padding: 8px 14px; background: transparent; border: none; border-bottom: 2px solid transparent; color: var(--muted); cursor: pointer; transition: color 0.15s, border-color 0.15s; }
+    .pslf-tab-btn:hover { color: var(--ink); }
+    .pslf-tab-btn.active { color: var(--ink); border-bottom-color: var(--green); font-weight: 600; }
+    .pslf-tab { display: none; }
+    .pslf-tab.active { display: block; }
+
+    .loan-card { border: 1px solid var(--border); border-radius: 4px; margin-bottom: 10px; overflow: hidden; }
+    .loan-card-hd { background: var(--cream); padding: 10px 16px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; }
+    .loan-card-hd:hover { background: #e4dfd1; }
+    .loan-card-title { font-size: 0.86rem; font-weight: 600; }
+    .loan-card-meta { font-family: 'DM Mono', monospace; font-size: 0.67rem; color: var(--muted); margin-top: 2px; }
+    .loan-card-body { padding: 16px; display: none; }
+    .loan-card-body.open { display: block; }
+    .loan-tag { font-family: 'DM Mono', monospace; font-size: 0.6rem; padding: 2px 6px; border-radius: 2px; border: 1px solid; margin-left: 8px; }
+    .loan-tag.ok-tag { border-color: var(--green); color: var(--green); background: var(--green-light); }
+    .loan-tag.bad-tag { border-color: var(--accent); color: var(--accent); background: var(--accent-light); }
+    .type-note { font-size: 0.78rem; padding: 8px 12px; border-radius: 3px; margin-top: 8px; }
+    .type-note.ok { background: var(--green-light); color: var(--green); }
+    .type-note.warn { background: var(--accent-light); color: var(--accent); }
+
+    .fg { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .fg3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+    @media(max-width:600px){.fg,.fg3{grid-template-columns:1fr;}}
+    .fgg { display: flex; flex-direction: column; gap: 5px; }
+    .fgg label { font-family: 'DM Mono', monospace; font-size: 0.68rem; color: var(--muted); letter-spacing: 0.06em; text-transform: uppercase; }
+    .fgg .hint { font-size: 0.74rem; color: var(--muted); font-style: italic; }
+
+    .tab-toggle { display: flex; border: 1px solid var(--border); border-radius: 3px; overflow: hidden; }
+    .tab-toggle button { border-radius: 0; border: none; padding: 7px 14px; font-size: 0.78rem; background: var(--paper); color: var(--muted); }
+    .tab-toggle button.active { background: var(--ink); color: var(--paper); }
+
+    .bulk-box, .manual-box { background: var(--cream); border: 1px solid var(--border); border-radius: 4px; padding: 14px; margin-bottom: 14px; }
+    .bulk-box p, .manual-box p { font-size: 0.82rem; color: var(--muted); font-style: italic; margin-bottom: 10px; }
+    .bulk-row { display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap; }
+    .bulk-row .fgg { flex: 1; min-width: 110px; }
+    .manual-row { display: grid; grid-template-columns: 1fr 1fr 1fr auto auto; gap: 10px; align-items: flex-end; }
+    @media(max-width:640px){.manual-row{grid-template-columns:1fr 1fr;}}
+
+    .pay-table-wrap { overflow-x: auto; max-height: 340px; overflow-y: auto; }
+    .pay-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; min-width: 460px; }
+    .pay-table thead th { font-family: 'DM Mono', monospace; font-size: 0.61rem; color: var(--muted); letter-spacing: 0.06em; text-transform: uppercase; padding: 7px 10px; border-bottom: 2px solid var(--border); background: var(--cream); text-align: left; position: sticky; top: 0; }
+    .pay-table tbody td { padding: 6px 10px; border-bottom: 1px solid var(--cream); }
+    .q-badge { font-family: 'DM Mono', monospace; font-size: 0.6rem; padding: 2px 6px; border-radius: 2px; }
+    .q-badge.yes { background: var(--green-light); color: var(--green); border: 1px solid var(--green); }
+    .q-badge.no  { background: var(--accent-light); color: var(--accent); border: 1px solid var(--accent); }
+
+    .emp-card { border: 1px solid var(--border); border-radius: 4px; padding: 12px 14px; margin-bottom: 10px; position: relative; }
+    .emp-card .emp-name { font-weight: 600; font-size: 0.88rem; margin-bottom: 3px; }
+    .emp-card .emp-meta { font-family: 'DM Mono', monospace; font-size: 0.67rem; color: var(--muted); }
+    .emp-card .remove-btn { position: absolute; top: 10px; right: 10px; }
+
+    .idr-result { background: var(--green-light); border: 1px solid var(--green); border-radius: 4px; padding: 14px 16px; margin-top: 14px; }
+    .idr-result .idr-pay { font-size: 1.3rem; font-weight: 600; color: var(--green); font-family: 'DM Mono', monospace; }
+    .idr-result .idr-lbl { font-family: 'DM Mono', monospace; font-size: 0.65rem; color: var(--green); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 4px; }
+    .idr-result p { font-size: 0.79rem; color: var(--green); margin-top: 6px; }
+    .idr-warn { background: var(--accent-light); border: 1px solid var(--accent); border-radius: 4px; padding: 12px 14px; margin-top: 12px; font-size: 0.81rem; color: var(--accent); }
+
+    .cb-row { display: flex; align-items: center; gap: 8px; font-size: 0.83rem; cursor: pointer; }
+    .cb-row input[type="checkbox"] { width: auto; accent-color: var(--green); cursor: pointer; }
+
+    .sec-div { border: none; border-top: 1px solid var(--border); margin: 16px 0; }
+    .empty-state { font-size: 0.82rem; color: var(--muted); font-style: italic; padding: 12px 0; }
+    .disclaimer { font-size: 0.76rem; color: var(--muted); font-style: italic; line-height: 1.5; border-top: 1px solid var(--border); padding-top: 14px; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="header-left">
+    <h1>Debt Projector &amp; PSLF Tracker</h1>
+    <div class="subtitle">Educator Finance Tools · v1.1</div>
+  </div>
+  <div class="header-right">
+    <a class="back-link" href="index.html">← All Tools</a>
+  </div>
+</header>
+
+<main>
+
+  <!-- STEP 1 -->
+  <div class="panel">
+    <div class="panel-header"><span class="step-badge">STEP 1</span><h2>Enter Your Debts</h2></div>
+    <div class="panel-body">
+      <div class="debt-table-wrap">
+        <table class="debt-table">
+          <thead><tr><th>Name / Label</th><th>Type</th><th>Balance ($)</th><th>APR (%)</th><th>Min. Payment ($)</th><th></th></tr></thead>
+          <tbody id="debt-tbody"></tbody>
+        </table>
+      </div>
+      <div class="add-debt-row">
+        <button class="btn-primary btn-small" onclick="addDebt()">+ Add Debt</button>
+        <p>Add one row per loan, card, or mortgage.</p>
+      </div>
+      <div class="error-line" id="debt-error"></div>
+    </div>
+  </div>
+
+  <!-- STEP 2 -->
+  <div class="panel">
+    <div class="panel-header"><span class="step-badge">STEP 2</span><h2>Choose a Payoff Strategy</h2></div>
+    <div class="panel-body">
+      <div class="strategy-grid">
+        <label class="strategy-card selected" id="card-minimum">
+          <input type="radio" name="strategy" value="minimum" checked onchange="onStrategyChange()">
+          <div class="s-title">Minimum Payments Only</div>
+          <div class="s-desc">Pay only the required minimums each month.</div>
+        </label>
+        <label class="strategy-card" id="card-avalanche">
+          <input type="radio" name="strategy" value="avalanche" onchange="onStrategyChange()">
+          <div class="s-title">Debt Avalanche</div>
+          <div class="s-desc">Extra toward highest-APR debt first. Saves the most interest.</div>
+        </label>
+        <label class="strategy-card" id="card-snowball">
+          <input type="radio" name="strategy" value="snowball" onchange="onStrategyChange()">
+          <div class="s-title">Debt Snowball</div>
+          <div class="s-desc">Extra toward smallest balance first. Builds momentum.</div>
+        </label>
+        <label class="strategy-card" id="card-custom">
+          <input type="radio" name="strategy" value="custom" onchange="onStrategyChange()">
+          <div class="s-title">Custom Payments</div>
+          <div class="s-desc">Set a specific monthly amount per debt.</div>
+        </label>
+      </div>
+      <div class="extra-payment-row" id="extra-row">
+        <label>EXTRA MONTHLY PAYMENT</label>
+        <input type="number" id="extra-input" placeholder="0.00" min="0" step="1" style="max-width:160px;" />
+        <span class="extra-note">Applied to priority debt, rolls to next as each is paid off.</span>
+      </div>
+      <div id="custom-payments-wrap">
+        <table class="custom-pay-table">
+          <thead><tr><th>Debt</th><th>Balance</th><th>Min. Required</th><th>Your Monthly Payment ($)</th></tr></thead>
+          <tbody id="custom-pay-tbody"></tbody>
+        </table>
+        <div class="error-line" id="custom-error"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 3 -->
+  <div class="panel">
+    <div class="panel-header"><span class="step-badge">STEP 3</span><h2>Calculate</h2></div>
+    <div class="panel-body" style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+      <button class="btn-accent" onclick="calculate()">Calculate Projections</button>
+      <button class="btn-ghost" onclick="resetAll()">Reset Everything</button>
+      <div class="error-line" id="calc-error" style="margin-top:0;"></div>
+    </div>
+  </div>
+
+  <!-- RESULTS -->
+  <div class="panel hidden" id="results-panel">
+    <div class="panel-header"><span class="step-badge">RESULTS</span><h2>Projections</h2></div>
+    <div class="panel-body">
+
+      <div class="summary-grid" id="summary-grid"></div>
+
+      <div class="tab-bar">
+        <button class="tab-btn active"  data-tab="tab-chart"   onclick="showTab(this)">Balance Chart</button>
+        <button class="tab-btn"         data-tab="tab-perdebt" onclick="showTab(this)">Per-Debt</button>
+        <button class="tab-btn"         data-tab="tab-amort"   onclick="showTab(this)">Month-by-Month</button>
+        <button class="tab-btn"         data-tab="tab-annual"  onclick="showTab(this)">Annual Summary</button>
+        <button class="tab-btn"         data-tab="tab-pslf"    onclick="showTab(this)">PSLF Tracker</button>
+      </div>
+
+      <!-- Chart -->
+      <div class="tab-content active" id="tab-chart">
+        <div class="slider-section">
+          <div class="slider-header">
+            <span class="slider-label-txt">Extra Monthly Payment</span>
+            <span class="slider-value-txt" id="slider-display">+$0 / month</span>
+          </div>
+          <input type="range" id="extra-slider" min="0" max="1000" step="5" value="0" oninput="onSlider()" />
+          <div class="slider-ticks">
+            <span>$0</span>
+            <span id="tick-mid">$500</span>
+            <span style="display:flex;align-items:center;gap:5px;">
+              <span style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--muted);">Max:</span>
+              <input type="number" id="slider-max-input" value="1000" min="50" step="50"
+                style="width:70px;padding:2px 6px;font-size:0.68rem;border:1px solid var(--border);border-radius:3px;background:var(--paper);color:var(--ink);font-family:'DM Mono',monospace;"
+                oninput="updateSliderMax(this.value)" />
+            </span>
+          </div>
+          <div class="slider-impact" id="slider-impact"></div>
+          <div id="extra-target-note" style="margin-top:10px;font-family:'DM Mono',monospace;font-size:0.72rem;color:var(--muted);min-height:18px;"></div>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:flex-end;margin-bottom:8px;">
+          <label style="display:flex;align-items:center;gap:7px;font-family:'DM Mono',monospace;font-size:0.7rem;color:var(--muted);cursor:pointer;">
+            <input type="checkbox" id="show-per-debt-labels" style="width:auto;accent-color:var(--accent);cursor:pointer;" onchange="if(results)renderChart(results)" />
+            Show per-debt balance labels
+          </label>
+        </div>
+        <div class="chart-wrap" id="chart-wrap"><canvas id="balance-chart"></canvas></div>
+        <div class="chart-legend" id="chart-legend"></div>
+
+        <!-- Timeline scrubber -->
+        <div id="scrubber-section" style="display:none;margin-top:16px;background:var(--cream);border:1px solid var(--border);border-radius:4px;padding:14px 20px;">
+          <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px;flex-wrap:wrap;gap:6px;">
+            <span style="font-family:'DM Mono',monospace;font-size:0.7rem;color:var(--muted);letter-spacing:0.07em;text-transform:uppercase;">Balance Snapshot</span>
+            <span style="font-family:'DM Mono',monospace;font-size:0.78rem;color:var(--ink);font-weight:500;" id="scrubber-date-label">Today</span>
+          </div>
+          <input type="range" id="timeline-scrubber" min="0" max="100" step="1" value="0" oninput="onScrub()" style="width:100%;accent-color:var(--ink);cursor:pointer;height:4px;margin-bottom:10px;" />
+          <div id="scrubber-snapshot" style="display:flex;flex-direction:column;gap:6px;"></div>
+        </div>
+      </div>
+
+      <!-- Per-Debt -->
+      <div class="tab-content" id="tab-perdebt">
+        <div style="overflow-x:auto;">
+          <table class="debt-result-table">
+            <thead><tr><th>Debt</th><th>Balance</th><th>APR</th><th>Payment</th><th>Payoff Date</th><th>Months</th><th>Total Interest</th></tr></thead>
+            <tbody id="per-debt-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Amort -->
+      <div class="tab-content" id="tab-amort">
+        <div class="amort-controls">
+          <label>DEBT:</label>
+          <select id="amort-select" onchange="renderAmort()"></select>
+        </div>
+        <div class="amort-table-wrap">
+          <table class="amort-table">
+            <thead><tr><th>Month</th><th>Payment</th><th>Principal</th><th>Interest</th><th>Balance</th></tr></thead>
+            <tbody id="amort-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Annual -->
+      <div class="tab-content" id="tab-annual">
+        <div class="annual-table-wrap">
+          <table class="annual-table">
+            <thead><tr><th>Year</th><th>Total Paid</th><th>Principal</th><th>Interest</th><th>Remaining Balance</th></tr></thead>
+            <tbody id="annual-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- PSLF -->
+      <div class="tab-content" id="tab-pslf">
+
+        <div class="pslf-prog-label">
+          <div><span class="pslf-big" id="pslf-count">0</span><span class="pslf-denom"> / 120 qualifying payments</span></div>
+          <span class="pslf-pct" id="pslf-pct">0% complete</span>
+        </div>
+        <div class="pslf-bar-track"><div class="pslf-bar-fill" id="pslf-bar" style="width:0%"></div></div>
+
+        <div class="summary-grid" style="margin-bottom:16px;">
+          <div class="summary-card"><div class="sc-label">Qualifying</div><div class="sc-value green" id="pslf-qual">0</div></div>
+          <div class="summary-card"><div class="sc-label">Remaining</div><div class="sc-value" id="pslf-rem">120</div></div>
+          <div class="summary-card"><div class="sc-label">Est. Forgiveness</div><div class="sc-value green" id="pslf-date">—</div></div>
+          <div class="summary-card"><div class="sc-label">Loans Tracked</div><div class="sc-value" id="pslf-loan-ct">0</div></div>
+        </div>
+
+        <div class="pslf-tab-bar">
+          <button class="pslf-tab-btn active" data-pt="pt-loans"  onclick="showPT(this)">Loans</button>
+          <button class="pslf-tab-btn"        data-pt="pt-pay"    onclick="showPT(this)">Payment Log</button>
+          <button class="pslf-tab-btn"        data-pt="pt-emp"    onclick="showPT(this)">Employment</button>
+          <button class="pslf-tab-btn"        data-pt="pt-idr"    onclick="showPT(this)">IDR Estimator</button>
+        </div>
+
+        <!-- PSLF: Loans -->
+        <div class="pslf-tab active" id="pt-loans">
+          <div id="pslf-loan-list"></div>
+          <button class="btn-primary btn-small" onclick="pAddLoan()">+ Add Loan</button>
+          <div class="error-line" id="pslf-loan-err"></div>
+          <div class="sec-div"></div>
+          <p style="font-size:0.79rem;color:var(--muted);font-style:italic;">Only federal Direct Loans qualify for PSLF. FFEL, Perkins, and private loans do not qualify unless consolidated into a Direct Consolidation Loan.</p>
+        </div>
+
+        <!-- PSLF: Payments -->
+        <div class="pslf-tab" id="pt-pay">
+          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:12px;">
+            <div class="tab-toggle">
+              <button class="active" id="pbulk-btn" onclick="pSetMode('bulk')">Bulk Past Payments</button>
+              <button id="pman-btn" onclick="pSetMode('manual')">Add Individual</button>
+            </div>
+            <span style="font-family:'DM Mono',monospace;font-size:0.72rem;color:var(--muted)" id="p-pay-label">0 logged</span>
+          </div>
+          <div class="bulk-box" id="p-bulk-box">
+            <p>Quickly log past qualifying payments without entering them one by one.</p>
+            <div class="bulk-row">
+              <div class="fgg"><label>Qualifying Payments</label><input type="number" id="p-bulk-n" min="1" max="120" placeholder="47" /></div>
+              <div class="fgg"><label>First Payment Month</label><input type="month" id="p-bulk-start" /></div>
+              <div class="fgg"><label>Avg. Amount ($)</label><input type="number" id="p-bulk-amt" min="0" step="0.01" placeholder="312.00" /></div>
+              <button class="btn-primary btn-small" onclick="pBulkImport()" style="margin-bottom:1px;">Import</button>
+            </div>
+            <div class="error-line" id="p-bulk-err"></div>
+          </div>
+          <div class="manual-box" id="p-man-box" style="display:none;">
+            <div class="manual-row">
+              <div class="fgg"><label>Month</label><input type="month" id="p-man-mo" /></div>
+              <div class="fgg"><label>Amount ($)</label><input type="number" id="p-man-amt" min="0" step="0.01" placeholder="312.00" /></div>
+              <div class="fgg"><label>Plan</label><select id="p-man-plan"><option>IBR</option><option>SAVE</option><option>PAYE</option><option>ICR</option><option>Standard 10-yr</option><option>Other</option></select></div>
+              <div class="fgg" style="justify-content:flex-end;"><label class="cb-row" style="margin-bottom:4px;"><input type="checkbox" id="p-man-qual" checked /> Qualifying</label></div>
+              <button class="btn-green btn-small" onclick="pManAdd()" style="margin-bottom:1px;">Add</button>
+            </div>
+            <div class="fgg" style="margin-top:10px;"><label>Notes</label><input type="text" id="p-man-notes" placeholder="e.g. ECF submitted" /></div>
+            <div class="error-line" id="p-man-err"></div>
+          </div>
+          <div class="pay-table-wrap">
+            <table class="pay-table">
+              <thead><tr><th>#</th><th>Month</th><th>Amount</th><th>Plan</th><th>Qualifying</th><th>Notes</th><th></th></tr></thead>
+              <tbody id="p-pay-tbody"></tbody>
+            </table>
+          </div>
+          <div class="empty-state" id="p-pay-empty">No payments logged yet.</div>
+        </div>
+
+        <!-- PSLF: Employment -->
+        <div class="pslf-tab" id="pt-emp">
+          <p style="font-size:0.83rem;margin-bottom:14px;">PSLF requires full-time employment at a qualifying employer — government, 501(c)(3) nonprofit, or certain other nonprofits. Submit an Employer Certification Form (ECF) annually.</p>
+          <div class="panel" style="box-shadow:none;margin-bottom:14px;">
+            <div class="panel-header"><h2 style="font-size:0.82rem;">Add Employer</h2></div>
+            <div class="panel-body">
+              <div class="fg3">
+                <div class="fgg"><label>Employer Name</label><input type="text" id="emp-name" placeholder="Springfield USD" /></div>
+                <div class="fgg"><label>Employer Type</label>
+                  <select id="emp-type" onchange="updEmpNote()">
+                    <option value="government">Government (federal/state/local/tribal)</option>
+                    <option value="501c3">501(c)(3) Nonprofit</option>
+                    <option value="other-nonprofit">Other Qualifying Nonprofit</option>
+                    <option value="private">Private / For-Profit</option>
+                  </select>
+                </div>
+                <div class="fgg"><label>Employment Type</label><select id="emp-fp"><option value="full">Full-time (30+ hrs/wk)</option><option value="part">Part-time</option></select></div>
+                <div class="fgg"><label>Start Date</label><input type="month" id="emp-start" /></div>
+                <div class="fgg"><label>End Date (blank = current)</label><input type="month" id="emp-end" /></div>
+                <div class="fgg"><label>ECF Submitted?</label><select id="emp-ecf"><option value="yes">Yes</option><option value="no">No</option><option value="pending">Pending</option></select></div>
+              </div>
+              <div id="emp-note" class="type-note ok" style="margin-top:10px;">✓ Government employers qualify for PSLF.</div>
+              <div style="margin-top:12px;"><button class="btn-green btn-small" onclick="pAddEmp()">Add Employer</button></div>
+              <div class="error-line" id="emp-err"></div>
+            </div>
+          </div>
+          <div id="pslf-emp-list"></div>
+          <div class="empty-state" id="emp-empty">No employers added yet.</div>
+          <div class="sec-div"></div>
+          <p style="font-size:0.78rem;color:var(--muted);font-style:italic;"><strong style="font-style:normal;">Tip:</strong> Submit an ECF every year. MOHELA will count qualifying payments as verified, and you'll catch issues early.</p>
+        </div>
+
+        <!-- PSLF: IDR -->
+        <div class="pslf-tab" id="pt-idr">
+          <p style="font-size:0.83rem;margin-bottom:16px;">Most PSLF borrowers use an Income-Driven Repayment plan. Estimate your payment here to verify qualifying payment amounts.</p>
+          <div class="fg">
+            <div class="fgg"><label>Adjusted Gross Income (AGI)</label><input type="number" id="idr-agi" placeholder="52000" min="0" step="100" oninput="calcIDR()" /><div class="hint">From your most recent tax return.</div></div>
+            <div class="fgg"><label>Family Size</label><input type="number" id="idr-fam" placeholder="1" min="1" max="20" value="1" oninput="calcIDR()" /></div>
+            <div class="fgg"><label>State</label><select id="idr-state" onchange="calcIDR()"><option value="48">Contiguous US / Most states</option><option value="alaska">Alaska</option><option value="hawaii">Hawaii</option></select></div>
+            <div class="fgg"><label>IDR Plan</label><select id="idr-plan" onchange="calcIDR()"><option value="SAVE">SAVE (formerly REPAYE)</option><option value="IBR-new">IBR (after July 1, 2014)</option><option value="IBR-old">IBR (before July 1, 2014)</option><option value="PAYE">PAYE</option><option value="ICR">ICR</option></select></div>
+            <div class="fgg"><label>Total Federal Loan Balance ($)</label><input type="number" id="idr-bal" placeholder="24000" min="0" step="100" oninput="calcIDR()" /></div>
+          </div>
+          <div id="idr-out"></div>
+          <div class="sec-div"></div>
+          <p style="font-size:0.77rem;color:var(--muted);font-style:italic;">Uses 2024 federal poverty guidelines. The SAVE plan is subject to ongoing litigation as of 2025 — verify plan availability with your servicer.</p>
+        </div>
+
+      </div><!-- /tab-pslf -->
+    </div>
+  </div>
+
+  <p class="disclaimer">Debt projections are estimates only. Actual payoff timelines may differ based on lender terms, compounding methods, and fee structures. Minimum payments may change as balances fall — this tool uses fixed minimums as entered. PSLF tracking is for personal recordkeeping only; verify payment counts with MOHELA and refer to StudentAid.gov for official program details.</p>
+
+</main>
+
+<script>
+// ══════════════════════════════════════════════
+//  DEBT PROJECTOR
+// ══════════════════════════════════════════════
+let debtId=0, debts=[], results=null, baseResults=null;
+const DEBT_TYPES=['Credit Card','Student Loan','Auto Loan','Mortgage','Personal Loan','Medical Debt','Other'];
+const PALETTE=['#8b1a1a','#2d5a3d','#1c4a6e','#7a4a1a','#5a1a6e','#1a5a5a','#6e1a4a','#4a6e1a','#2a4a7a','#6e3a1a'];
+
+function addDebt(def={}) {
+  debts.push({id:++debtId,name:def.name||'',type:def.type||'Credit Card',balance:def.balance||'',apr:def.apr||'',minPayment:def.minPayment||''});
+  renderDebts();
+}
+function removeDebt(id){debts=debts.filter(d=>d.id!==id);renderDebts();syncCP();}
+function updateDebt(id,f,v){const d=debts.find(x=>x.id===id);if(d){d[f]=v;if(f!=='name'&&f!=='type')syncCP();}}
+
+function renderDebts(){
+  const tb=document.getElementById('debt-tbody');
+  tb.innerHTML='';
+  if(!debts.length){tb.innerHTML=`<tr><td colspan="6" style="padding:14px 8px;font-style:italic;color:var(--muted);font-size:0.82rem;">No debts added yet.</td></tr>`;return;}
+  debts.forEach(d=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=`
+      <td><input type="text" value="${x(d.name)}" placeholder="e.g. Chase Visa" oninput="updateDebt(${d.id},'name',this.value)"/></td>
+      <td><select onchange="updateDebt(${d.id},'type',this.value)">${DEBT_TYPES.map(t=>`<option${t===d.type?' selected':''}>${t}</option>`).join('')}</select></td>
+      <td><input type="number" value="${d.balance}" placeholder="5000" min="0" step="0.01" oninput="updateDebt(${d.id},'balance',this.value)"/></td>
+      <td><input type="number" value="${d.apr}" placeholder="18.9" min="0" max="100" step="0.01" oninput="updateDebt(${d.id},'apr',this.value)"/></td>
+      <td><input type="number" value="${d.minPayment}" placeholder="100" min="1" step="0.01" oninput="updateDebt(${d.id},'minPayment',this.value)"/></td>
+      <td><button class="remove-btn" onclick="removeDebt(${d.id})">✕</button></td>`;
+    tb.appendChild(tr);
+  });
+  syncCP();
+}
+
+function onStrategyChange(){
+  const v=getStrat();
+  ['minimum','avalanche','snowball','custom'].forEach(s=>document.getElementById('card-'+s).classList.toggle('selected',s===v));
+  document.getElementById('extra-row').style.display=(v==='custom'||v==='minimum')?'none':'flex';
+  document.getElementById('custom-payments-wrap').style.display=v==='custom'?'block':'none';
+  if(v==='custom')syncCP();
+  if(results)updateTargetNote();
+}
+function getStrat(){return document.querySelector('input[name="strategy"]:checked')?.value||'minimum';}
+function syncCP(){
+  if(getStrat()!=='custom')return;
+  const tb=document.getElementById('custom-pay-tbody');tb.innerHTML='';
+  debts.forEach(d=>{const m=parseFloat(d.minPayment)||0;const tr=document.createElement('tr');tr.innerHTML=`<td>${d.name||'(unnamed)'}</td><td>${$f(parseFloat(d.balance)||0)}</td><td>${$f(m)}</td><td><input type="number" id="cp-${d.id}" placeholder="${m.toFixed(2)}" min="${m}" step="0.01" style="max-width:140px;"/></td>`;tb.appendChild(tr);});
+}
+function getCP(d){const v=parseFloat(document.getElementById('cp-'+d.id)?.value);return isNaN(v)?parseFloat(d.minPayment)||0:v;}
+
+function validate(){
+  if(!debts.length)return'Add at least one debt.';
+  for(const d of debts){
+    if(!d.name)return'Give every debt a name.';
+    if(!(parseFloat(d.balance)>0))return`"${d.name}": balance must be > 0.`;
+    if(isNaN(parseFloat(d.apr))||parseFloat(d.apr)<0)return`"${d.name}": APR must be 0 or greater.`;
+    if(!(parseFloat(d.minPayment)>0))return`"${d.name}": minimum payment must be > 0.`;
+  }
+  if(getStrat()==='custom')for(const d of debts){const cp=getCP(d),mn=parseFloat(d.minPayment);if(cp<mn)return`"${d.name}": custom payment must be ≥ minimum (${$f(mn)}).`;}
+  return null;
+}
+
+function runProj(arr,strategy,extra){
+  if(strategy==='custom')return runCustom(arr.map(d=>({...d,balance:+d.balance,apr:+d.apr,minPayment:+d.minPayment,_fp:getCP(d),schedule:[],paidOffMonth:null})));
+  let pool=arr.map(d=>({...d,balance:+d.balance,apr:+d.apr,minPayment:+d.minPayment,schedule:[],paidOffMonth:null}));
+  const MAX=600;let mo=0;
+  while(pool.some(d=>d.balance>0.005)&&mo<MAX){
+    mo++;
+    let active=pool.filter(d=>d.balance>0.005);
+    let pri=strategy==='avalanche'?[...active].sort((a,b)=>b.apr-a.apr||a.balance-b.balance):strategy==='snowball'?[...active].sort((a,b)=>a.balance-b.balance||b.apr-a.apr):active;
+    let rolled=extra;
+    active.forEach(d=>{const r=d.apr/100/12,int=d.balance*r,pay=Math.min(d.minPayment,d.balance+int),prin=Math.min(pay-int,d.balance);d.balance=Math.max(0,d.balance-prin);d.schedule.push({month:mo,payment:pay,principal:prin,interest:int,balance:d.balance});});
+    pool.forEach(d=>{if(d.balance<0.005&&d.paidOffMonth===null){d.paidOffMonth=mo;rolled+=d.minPayment;}});
+    if(rolled>0){const tgt=pri.find(d=>d.balance>0.005);if(tgt){const e=tgt.schedule[tgt.schedule.length-1],ex=Math.min(rolled,tgt.balance);tgt.balance=Math.max(0,tgt.balance-ex);e.payment+=ex;e.principal+=ex;e.balance=tgt.balance;if(tgt.balance<0.005&&tgt.paidOffMonth===null)tgt.paidOffMonth=mo;}}
+  }
+  pool.forEach(d=>{if(d.paidOffMonth===null)d.paidOffMonth=mo;});
+  return pool;
+}
+function runCustom(pool){
+  const MAX=600;let mo=0;
+  while(pool.some(d=>d.balance>0.005)&&mo<MAX){mo++;pool.forEach(d=>{if(d.balance<=0.005){if(d.paidOffMonth===null)d.paidOffMonth=mo-1;return;}const r=d.apr/100/12,int=d.balance*r,pay=Math.min(d._fp,d.balance+int),prin=Math.min(pay-int,d.balance);d.balance=Math.max(0,d.balance-prin);d.schedule.push({month:mo,payment:pay,principal:prin,interest:int,balance:d.balance});if(d.balance<0.005&&d.paidOffMonth===null)d.paidOffMonth=mo;});}
+  pool.forEach(d=>{if(d.paidOffMonth===null)d.paidOffMonth=mo;});
+  return pool;
+}
+
+function calculate(){
+  document.getElementById('calc-error').textContent='';
+  const err=validate();if(err){document.getElementById('calc-error').textContent=err;return;}
+  const strat=getStrat(),typed=parseFloat(document.getElementById('extra-input').value)||0;
+  baseResults=runProj(debts,strat,typed);
+  results=baseResults;
+
+  const sl=document.getElementById('extra-slider');
+  const currentMax=parseInt(document.getElementById('slider-max-input').value)||1000;
+  sl.max=currentMax; sl.value=0;
+  document.getElementById('slider-display').textContent='+$0 / month';
+  document.getElementById('tick-mid').textContent='$'+Math.round(currentMax/2).toLocaleString();
+  document.getElementById('slider-impact').innerHTML='';
+
+  renderAll(results);
+  document.getElementById('results-panel').classList.remove('hidden');
+  document.getElementById('results-panel').scrollIntoView({behavior:'smooth',block:'start'});
+  updateTargetNote();
+}
+
+function renderAll(pool){renderSummary(pool);renderChart(pool);renderPerDebt(pool);renderAmortSel(pool);renderAmort();renderAnnual(pool);}
+
+function onSlider(){
+  const v=+document.getElementById('extra-slider').value;
+  document.getElementById('slider-display').textContent='+$'+v.toLocaleString()+' / month';
+  const typed=parseFloat(document.getElementById('extra-input').value)||0;
+  results=runProj(debts,getStrat(),typed+v);
+  renderAll(results);
+  if(v>0&&baseResults){
+    const bMo=Math.max(...baseResults.map(d=>d.paidOffMonth||0));
+    const nMo=Math.max(...results.map(d=>d.paidOffMonth||0));
+    const bInt=baseResults.reduce((s,d)=>s+d.schedule.reduce((si,r)=>si+r.interest,0),0);
+    const nInt=results.reduce((s,d)=>s+d.schedule.reduce((si,r)=>si+r.interest,0),0);
+    document.getElementById('slider-impact').innerHTML=`
+      <div class="impact-item"><div class="impact-label">Months Saved</div><div class="impact-val green">${bMo-nMo>0?'-'+(bMo-nMo)+' mo':'—'}</div></div>
+      <div class="impact-item"><div class="impact-label">Interest Saved</div><div class="impact-val green">${bInt-nInt>0?$f(bInt-nInt):'—'}</div></div>
+      <div class="impact-item"><div class="impact-label">New Payoff</div><div class="impact-val">${mo2date(nMo)}</div></div>`;
+  } else {document.getElementById('slider-impact').innerHTML='';}
+}
+
+function updateTargetNote(){
+  const el=document.getElementById('extra-target-note');
+  if(!el||!results)return;
+  const v=+document.getElementById('extra-slider').value;
+  const typed=parseFloat(document.getElementById('extra-input').value)||0;
+  const extra=v+typed;
+  if(extra<=0){el.textContent='';return;}
+  const strat=getStrat();
+  if(strat==='minimum'){el.textContent='';return;}
+  if(strat==='custom'){el.textContent='Extra payment applied per custom amounts above.';return;}
+  // Find current priority target
+  const active=results.filter(d=>d.balance>0.005);
+  if(!active.length){el.textContent='All debts paid off.';return;}
+  let target;
+  if(strat==='avalanche') target=[...active].sort((a,b)=>b.apr-a.apr||a.balance-b.balance)[0];
+  else target=[...active].sort((a,b)=>a.balance-b.balance||b.apr-a.apr)[0];
+  el.innerHTML=`Extra $${extra.toLocaleString()}/mo → applied to <strong>${x(target.name||'(unnamed)')}</strong> (${parseFloat(target.apr).toFixed(2)}% APR${strat==='avalanche'?' — highest APR':' — lowest balance'})`;
+}
+
+
+function onScrub(){
+  const mo = parseInt(document.getElementById('timeline-scrubber').value)||0;
+  renderScrubAt(mo);
+  // Draw vertical indicator line on canvas
+  drawScrubLine(mo);
+}
+
+function renderScrubAt(mo){
+  const datasets = window._chartDatasets;
+  const mxMo     = window._chartMaxMo;
+  const now       = window._chartNow;
+  if(!datasets) return;
+
+  const now2 = now||new Date();
+  const d = new Date(now2.getFullYear(), now2.getMonth()+mo, 1);
+  const dateStr = mo===0 ? 'Today — ' + d.toLocaleDateString('en-US',{month:'short',year:'numeric'})
+                         : d.toLocaleDateString('en-US',{month:'long',year:'numeric'});
+  document.getElementById('scrubber-date-label').textContent = dateStr;
+
+  let total = 0;
+  const rows = datasets.map(ds=>{
+    const pts = ds.data.filter(p=>p.x<=mo);
+    const bal = pts.length ? pts[pts.length-1].y : 0;
+    total += bal;
+    return {label: ds.shortLabel||ds.label, color: ds.color, bal};
+  });
+
+  // Total row + per-debt rows
+  let html = `<div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);margin-bottom:4px;">
+    <span style="font-family:'DM Mono',monospace;font-size:0.72rem;font-weight:600;color:var(--ink);">Total Remaining</span>
+    <span style="font-family:'DM Mono',monospace;font-size:0.9rem;font-weight:600;color:var(--ink);">${$f(total)}</span>
+  </div>`;
+  rows.forEach(pd=>{
+    const paidOff = pd.bal < 0.5;
+    html += `<div style="display:flex;align-items:center;gap:8px;padding:3px 0;">
+      <span style="width:9px;height:9px;border-radius:50%;background:${pd.color};flex-shrink:0;display:inline-block;opacity:${paidOff?'0.3':'1'}"></span>
+      <span style="font-size:0.82rem;flex:1;color:${paidOff?'var(--muted)':'var(--ink)'};">${pd.label}</span>
+      <span style="font-family:'DM Mono',monospace;font-size:0.82rem;font-weight:600;color:${paidOff?'var(--green)':'var(--ink)'};">${paidOff?'Paid off':$f(pd.bal)}</span>
+    </div>`;
+  });
+  document.getElementById('scrubber-snapshot').innerHTML = html;
+}
+
+function drawScrubLine(mo){
+  const canvas  = document.getElementById('balance-chart');
+  const mxMo    = window._chartMaxMo;
+  if(!canvas||!mxMo) return;
+  const dpr = window.devicePixelRatio||1;
+  const W   = canvas.width/dpr;
+  const H   = canvas.height/dpr;
+  const PAD = {top:28,right:28,bottom:56,left:76};
+  const CW  = W-PAD.left-PAD.right;
+  const CH  = H-PAD.top-PAD.bottom;
+  const xc  = PAD.left+(mo/mxMo)*CW;
+  const ctx = canvas.getContext('2d');
+  // Redraw chart first to clear previous line, suppressing scrubber re-init
+  window._skipScrubInit = true;
+  if(results) renderChart(results);
+  window._skipScrubInit = false;
+  // Now draw the scrub line on top
+  ctx.save();
+  ctx.strokeStyle='rgba(28,28,46,0.45)';ctx.lineWidth=1.5;ctx.setLineDash([4,3]);
+  ctx.beginPath();ctx.moveTo(xc,PAD.top);ctx.lineTo(xc,PAD.top+CH);ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.restore();
+}
+
+function updateSliderMax(val){
+  const max=Math.max(50,parseInt(val)||1000);
+  const sl=document.getElementById('extra-slider');
+  sl.max=max;
+  if(+sl.value>max){sl.value=max;onSlider();}
+  document.getElementById('tick-mid').textContent='$'+Math.round(max/2).toLocaleString();
+}
+
+function renderSummary(pool){
+  const orig=pool.reduce((s,d)=>s+parseFloat(debts.find(x=>x.id===d.id).balance),0);
+  const ti=pool.reduce((s,d)=>s+d.schedule.reduce((si,r)=>si+r.interest,0),0);
+  const tp=pool.reduce((s,d)=>s+d.schedule.reduce((si,r)=>si+r.payment,0),0);
+  const mxMo=Math.max(...pool.map(d=>d.paidOffMonth||0));
+  const fm=pool.reduce((s,d)=>s+(d.schedule[0]?.payment||0),0);
+  document.getElementById('summary-grid').innerHTML=`
+    <div class="summary-card"><div class="sc-label">Total Debt</div><div class="sc-value">${$f(orig)}</div></div>
+    <div class="summary-card"><div class="sc-label">Total Interest</div><div class="sc-value red">${$f(ti)}</div></div>
+    <div class="summary-card"><div class="sc-label">Total Paid</div><div class="sc-value">${$f(tp)}</div></div>
+    <div class="summary-card"><div class="sc-label">Debt-Free Date</div><div class="sc-value green">${mo2date(mxMo)}</div></div>
+    <div class="summary-card"><div class="sc-label">Months to Pay Off</div><div class="sc-value">${mxMo}</div></div>
+    <div class="summary-card"><div class="sc-label">First Month Total</div><div class="sc-value">${$f(fm)}</div></div>`;
+}
+
+// ── Chart with date x-axis & balance callouts ──
+function renderChart(pool){
+  const wrap=document.getElementById('chart-wrap');
+  const old=document.getElementById('balance-chart');if(old)old.remove();
+  const canvas=document.createElement('canvas');canvas.id='balance-chart';canvas.style.display='block';wrap.appendChild(canvas);
+
+  const mxMo=Math.max(...pool.map(d=>d.paidOffMonth||0));
+  const NOW=new Date();
+
+  const datasets=pool.map((d,i)=>{
+    const ob=parseFloat(debts.find(x=>x.id===d.id).balance);
+    const data=[{x:0,y:ob}];
+    d.schedule.forEach(r=>data.push({x:r.month,y:r.balance}));
+    if(d.paidOffMonth<mxMo)data.push({x:mxMo,y:0});
+    const aprStr=parseFloat(d.apr).toFixed(2)+'%';
+    return{label:(d.name||`Debt ${i+1}`)+' ('+aprStr+')',shortLabel:d.name||`Debt ${i+1}`,apr:parseFloat(d.apr),data,color:PALETTE[i%PALETTE.length]};
+  });
+
+  drawChart(canvas,datasets,mxMo,NOW);
+
+  document.getElementById('chart-legend').innerHTML=datasets.map(ds=>`<div class="legend-item"><div class="legend-dot" style="background:${ds.color}"></div><span>${x(ds.label)}</span></div>`).join('');
+}
+
+function drawChart(canvas,datasets,mxMo,now){
+  const dpr=window.devicePixelRatio||1;
+  const W=canvas.parentElement.clientWidth||700;
+  const H=340;
+  canvas.width=W*dpr;canvas.height=H*dpr;
+  canvas.style.width=W+'px';canvas.style.height=H+'px';
+  const ctx=canvas.getContext('2d');ctx.scale(dpr,dpr);
+
+  const showPerDebt=document.getElementById('show-per-debt-labels')?.checked||false;
+  const PAD={top:28,right:28,bottom:56,left:76};
+  const CW=W-PAD.left-PAD.right,CH=H-PAD.top-PAD.bottom;
+
+  const allY=datasets.flatMap(ds=>ds.data.map(p=>p.y));
+  const mxY=Math.max(...allY,1);
+  const xp=mo=>PAD.left+(mo/mxMo)*CW;
+  const yp=y=>PAD.top+CH-(y/mxY)*CH;
+
+  // Y grid
+  const ySteps=5;
+  for(let i=0;i<=ySteps;i++){
+    const y=(mxY/ySteps)*i,yc=yp(y);
+    ctx.strokeStyle='#e0dbd0';ctx.lineWidth=0.5;
+    ctx.beginPath();ctx.moveTo(PAD.left,yc);ctx.lineTo(PAD.left+CW,yc);ctx.stroke();
+    ctx.fillStyle='#7a7262';ctx.font=`10px 'DM Mono',monospace`;ctx.textAlign='right';
+    ctx.fillText(fmtK(y),PAD.left-6,yc+4);
+  }
+
+  // X axis: date ticks
+  let tick=3;
+  if(mxMo>72)tick=6;if(mxMo>144)tick=12;if(mxMo>288)tick=24;
+
+  ctx.fillStyle='#7a7262';ctx.font=`10px 'DM Mono',monospace`;ctx.textAlign='center';
+  for(let mo=0;mo<=mxMo;mo+=tick){
+    const xc=xp(mo);
+    const d=new Date(now.getFullYear(),now.getMonth()+mo,1);
+    const lbl=mo===0?'Today':d.toLocaleDateString('en-US',{month:'short'})+" '"+String(d.getFullYear()).slice(2);
+    ctx.fillText(lbl,xc,H-PAD.bottom+18);
+    ctx.strokeStyle='#d4cebe';ctx.lineWidth=0.5;
+    ctx.beginPath();ctx.moveTo(xc,PAD.top+CH);ctx.lineTo(xc,PAD.top+CH+4);ctx.stroke();
+  }
+
+  // Axes
+  ctx.strokeStyle='#c4bdb0';ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(PAD.left,PAD.top);ctx.lineTo(PAD.left,PAD.top+CH);ctx.lineTo(PAD.left+CW,PAD.top+CH);ctx.stroke();
+
+  // Lines
+  datasets.forEach(ds=>{
+    ctx.strokeStyle=ds.color;ctx.lineWidth=2.5;ctx.lineJoin='round';
+    ctx.beginPath();
+    ds.data.forEach((pt,i)=>{const xc=xp(pt.x),yc=yp(pt.y);i===0?ctx.moveTo(xc,yc):ctx.lineTo(xc,yc);});
+    ctx.stroke();
+  });
+
+  // Payoff dashed markers per debt
+  datasets.forEach(ds=>{
+    const lastPt=ds.data[ds.data.length-1];
+    if(lastPt.x>=mxMo)return;
+    ctx.strokeStyle=ds.color;ctx.lineWidth=1;ctx.setLineDash([3,3]);
+    ctx.beginPath();ctx.moveTo(xp(lastPt.x),PAD.top);ctx.lineTo(xp(lastPt.x),PAD.top+CH);ctx.stroke();
+    ctx.setLineDash([]);
+  });
+
+  ctx.font=`bold 9px 'DM Mono',monospace`;
+  const boxLines=[];
+
+  for(let mo=tick;mo<mxMo;mo+=tick){
+    let total=0;
+    const perDebt=[];
+    datasets.forEach(ds=>{
+      const pts=ds.data.filter(p=>p.x<=mo);
+      const bal=pts.length?pts[pts.length-1].y:0;
+      total+=bal;
+      if(bal>0.5)perDebt.push({label:ds.shortLabel||ds.label,color:ds.color,bal,yc:yp(bal)});
+    });
+    if(total<1)continue;
+    const xc=xp(mo);
+    boxLines.push({mo,total,perDebt});
+
+    // Dot at average y of active lines
+    const avgY=perDebt.reduce((s,pd)=>s+pd.yc,0)/perDebt.length;
+    ctx.fillStyle='#7a7262';
+    ctx.beginPath();ctx.arc(xc,avgY,2.5,0,Math.PI*2);ctx.fill();
+
+    // Combined total pill
+    const lbl=fmtK(total);
+    ctx.textAlign='center';
+    const tw=ctx.measureText(lbl).width+10;
+    const ty=avgY-16;
+    ctx.fillStyle='rgba(244,240,232,0.92)';
+    ctx.beginPath();ctx.roundRect(xc-tw/2,ty-10,tw,14,3);ctx.fill();
+    ctx.strokeStyle='#c8c2b4';ctx.lineWidth=0.5;
+    ctx.beginPath();ctx.roundRect(xc-tw/2,ty-10,tw,14,3);ctx.stroke();
+    ctx.fillStyle='#1c1c2e';
+    ctx.fillText(lbl,xc,ty+1);
+
+    // Per-debt labels (toggleable)
+    if(showPerDebt){
+      perDebt.forEach(pd=>{
+        const pdLbl=fmtK(pd.bal);
+        const pdW=ctx.measureText(pdLbl).width+8;
+        const overRight=xc+pdW/2+6>PAD.left+CW;
+        const px=overRight?xc-(pdW/2+5):xc+(pdW/2+5);
+        ctx.fillStyle='rgba(255,255,255,0.93)';
+        ctx.beginPath();ctx.roundRect(px-pdW/2,pd.yc-9,pdW,13,2);ctx.fill();
+        ctx.strokeStyle=pd.color;ctx.lineWidth=0.8;
+        ctx.beginPath();ctx.roundRect(px-pdW/2,pd.yc-9,pdW,13,2);ctx.stroke();
+        ctx.fillStyle=pd.color;ctx.textAlign='center';
+        ctx.fillText(pdLbl,px,pd.yc+1);
+      });
+    }
+  }
+
+  // Store datasets globally so the scrubber can read them
+  window._chartDatasets = datasets;
+  window._chartMaxMo    = mxMo;
+  window._chartNow      = now;
+
+  // Init scrubber (skip when called from drawScrubLine redraw)
+  if(!window._skipScrubInit){
+    const scrub = document.getElementById('timeline-scrubber');
+    if(scrub){ scrub.max = mxMo; scrub.value = 0; }
+    document.getElementById('scrubber-section').style.display = 'block';
+    renderScrubAt(0);
+  }
+}
+function fmtK(n){if(n>=1e6)return'$'+(n/1e6).toFixed(1)+'M';if(n>=1000)return'$'+Math.round(n/1000)+'k';return'$'+Math.round(n);}
+
+function renderPerDebt(pool){
+  const tb=document.getElementById('per-debt-tbody');tb.innerHTML='';
+  pool.forEach(d=>{
+    const og=debts.find(z=>z.id===d.id);
+    const ti=d.schedule.reduce((s,r)=>s+r.interest,0);
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td>${x(d.name||'(unnamed)')}<span class="type-tag">${x(d.type)}</span></td><td style="text-align:right">${$f(+og.balance)}</td><td style="text-align:right">${(+d.apr).toFixed(2)}%</td><td style="text-align:right">${$f(d.schedule[0]?.payment||0)}</td><td style="text-align:right">${mo2date(d.paidOffMonth)}</td><td style="text-align:right">${d.paidOffMonth}</td><td style="text-align:right;color:var(--accent)">${$f(ti)}</td>`;
+    tb.appendChild(tr);
+  });
+}
+
+function renderAmortSel(pool){
+  const sel=document.getElementById('amort-select');sel.innerHTML='';
+  pool.forEach((d,i)=>{const o=document.createElement('option');o.value=i;o.textContent=(d.name||`Debt ${i+1}`)+' — '+d.type;sel.appendChild(o);});
+}
+function renderAmort(){
+  if(!results)return;
+  const d=results[+document.getElementById('amort-select').value||0];
+  const tb=document.getElementById('amort-tbody');tb.innerHTML='';
+  let py=null;
+  d.schedule.forEach(r=>{
+    const yr=Math.ceil(r.month/12);
+    if(yr!==py){py=yr;const tr=document.createElement('tr');tr.className='year-row';tr.innerHTML=`<td colspan="5">Year ${yr}</td>`;tb.appendChild(tr);}
+    const tr=document.createElement('tr');
+    if(r.balance<0.005)tr.className='paid-off';
+    tr.innerHTML=`<td>Month ${r.month}</td><td>${$f(r.payment)}</td><td>${$f(r.principal)}</td><td>${$f(r.interest)}</td><td>${r.balance<0.005?'<em>Paid Off</em>':$f(r.balance)}</td>`;
+    tb.appendChild(tr);
+  });
+}
+
+function renderAnnual(pool){
+  const mxMo=Math.max(...pool.map(d=>d.paidOffMonth||0));
+  const tb=document.getElementById('annual-tbody');tb.innerHTML='';
+  for(let y=1;y<=Math.ceil(mxMo/12);y++){
+    const ms=(y-1)*12+1,me=y*12;
+    let yp=0,ypr=0,yi=0;
+    pool.forEach(d=>d.schedule.filter(r=>r.month>=ms&&r.month<=me).forEach(r=>{yp+=r.payment;ypr+=r.principal;yi+=r.interest;}));
+    const rem=pool.reduce((s,d)=>{const l=[...d.schedule].reverse().find(r=>r.month<=me);return s+(l?l.balance:0);},0);
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td>${y}</td><td>${$f(yp)}</td><td>${$f(ypr)}</td><td>${$f(yi)}</td><td>${rem<0.01?'<em>$0 — Paid Off</em>':$f(rem)}</td>`;
+    tb.appendChild(tr);
+  }
+  const orig=pool.reduce((s,d)=>s+parseFloat(debts.find(z=>z.id===d.id).balance),0);
+  const ti=pool.reduce((s,d)=>s+d.schedule.reduce((si,r)=>si+r.interest,0),0);
+  const tp=pool.reduce((s,d)=>s+d.schedule.reduce((si,r)=>si+r.payment,0),0);
+  const tf=document.createElement('tr');
+  tf.innerHTML=`<td>TOTALS</td><td>${$f(tp)}</td><td>${$f(orig)}</td><td>${$f(ti)}</td><td>—</td>`;
+  tb.appendChild(tf);
+}
+
+function showTab(btn){
+  const id=btn.dataset.tab;
+  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');btn.classList.add('active');
+  if(id==='tab-chart'&&results)renderChart(results);
+}
+
+function resetAll(){
+  debts=[];debtId=0;results=null;baseResults=null;renderDebts();
+  document.getElementById('results-panel').classList.add('hidden');
+  document.getElementById('calc-error').textContent='';
+  document.getElementById('extra-input').value='';
+  document.querySelector('input[name="strategy"][value="minimum"]').checked=true;onStrategyChange();
+}
+
+// ── Helpers ──
+function $f(n){return'$'+(Math.round(n*100)/100).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
+function mo2date(mo){const d=new Date();return new Date(d.getFullYear(),d.getMonth()+mo,1).toLocaleDateString('en-US',{month:'short',year:'numeric'});}
+function x(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+// ══════════════════════════════════════════════
+//  PSLF TRACKER
+// ══════════════════════════════════════════════
+let pLoanId=0,pEmpId=0,pPayId=0;
+let pLoans=[],pEmps=[],pPays=[];
+
+const PSLF_TYPES=['Direct Subsidized','Direct Unsubsidized','Direct PLUS (Grad)','Direct PLUS (Parent)','Direct Consolidation','FFEL (non-qualifying)','Perkins (non-qualifying)','Private (non-qualifying)'];
+const PSLF_OK=new Set(['Direct Subsidized','Direct Unsubsidized','Direct PLUS (Grad)','Direct PLUS (Parent)','Direct Consolidation']);
+
+function showPT(btn){
+  const id=btn.dataset.pt;
+  document.querySelectorAll('.pslf-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.pslf-tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');btn.classList.add('active');
+}
+
+function pOv(){
+  const q=pPays.filter(p=>p.q).length,pct=Math.min(100,(q/120)*100);
+  document.getElementById('pslf-count').textContent=q;
+  document.getElementById('pslf-pct').textContent=pct.toFixed(1)+'% complete';
+  document.getElementById('pslf-bar').style.width=pct+'%';
+  document.getElementById('pslf-qual').textContent=q;
+  document.getElementById('pslf-rem').textContent=Math.max(0,120-q);
+  document.getElementById('pslf-loan-ct').textContent=pLoans.length;
+  if(q>0&&q<120){const fd=new Date();fd.setMonth(fd.getMonth()+(120-q));document.getElementById('pslf-date').textContent=fd.toLocaleDateString('en-US',{month:'short',year:'numeric'});}
+  else if(q>=120){document.getElementById('pslf-date').textContent='Eligible Now!';}
+  else document.getElementById('pslf-date').textContent='—';
+}
+
+// Loans
+function pAddLoan(){pLoans.push({id:++pLoanId,name:'',type:'Direct Subsidized',balance:'',servicer:'',rate:'',disbursed:'',open:true});pRenderLoans();}
+function pRemLoan(id){pLoans=pLoans.filter(l=>l.id!==id);pRenderLoans();pOv();}
+function pUpdLoan(id,f,v){const l=pLoans.find(z=>z.id===id);if(l){l[f]=v;pOv();}}
+function pTogLoan(id){const l=pLoans.find(z=>z.id===id);if(l){l.open=!l.open;pRenderLoans();}}
+function pRenderLoans(){
+  const el=document.getElementById('pslf-loan-list');el.innerHTML='';
+  pLoans.forEach(l=>{
+    const q=PSLF_OK.has(l.type);
+    const div=document.createElement('div');div.className='loan-card';
+    div.innerHTML=`
+      <div class="loan-card-hd" onclick="pTogLoan(${l.id})">
+        <div>
+          <div class="loan-card-title">${x(l.name||'New Loan')}<span class="loan-tag ${q?'ok-tag':'bad-tag'}">${q?'QUALIFIES':'NON-QUALIFYING'}</span></div>
+          <div class="loan-card-meta">${l.type}${l.balance?' · '+$f(+l.balance):''}${l.servicer?' · '+x(l.servicer):''}</div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <button class="remove-btn" onclick="event.stopPropagation();pRemLoan(${l.id})">✕</button>
+          <span style="font-family:'DM Mono',monospace;font-size:0.72rem;color:var(--muted)">${l.open?'▲':'▼'}</span>
+        </div>
+      </div>
+      <div class="loan-card-body ${l.open?'open':''}">
+        <div class="fg3">
+          <div class="fgg"><label>Nickname</label><input type="text" value="${x(l.name)}" placeholder="Undergrad Sub" oninput="pUpdLoan(${l.id},'name',this.value);pRenderLoans()"/></div>
+          <div class="fgg"><label>Loan Type</label><select onchange="pUpdLoan(${l.id},'type',this.value);pRenderLoans()">${PSLF_TYPES.map(t=>`<option${t===l.type?' selected':''}>${t}</option>`).join('')}</select></div>
+          <div class="fgg"><label>Balance ($)</label><input type="number" value="${l.balance}" placeholder="8500" min="0" step="0.01" oninput="pUpdLoan(${l.id},'balance',this.value)"/></div>
+          <div class="fgg"><label>Servicer</label><input type="text" value="${x(l.servicer||'')}" placeholder="MOHELA" oninput="pUpdLoan(${l.id},'servicer',this.value)"/></div>
+          <div class="fgg"><label>Interest Rate (%)</label><input type="number" value="${l.rate||''}" placeholder="6.54" min="0" step="0.01" oninput="pUpdLoan(${l.id},'rate',this.value)"/></div>
+          <div class="fgg"><label>Disbursement Date</label><input type="month" value="${l.disbursed||''}" oninput="pUpdLoan(${l.id},'disbursed',this.value)"/></div>
+        </div>
+        <div class="type-note ${q?'ok':'warn'}" style="margin-top:10px;">${q?'✓ '+l.type+' loans qualify for PSLF.':'⚠ '+l.type+' loans do not qualify. Consider consolidating into a Direct Consolidation Loan.'}</div>
+      </div>`;
+    el.appendChild(div);
+  });
+  pOv();
+}
+
+// Payments
+function pSetMode(m){
+  document.getElementById('p-bulk-box').style.display=m==='bulk'?'block':'none';
+  document.getElementById('p-man-box').style.display=m==='manual'?'block':'none';
+  document.getElementById('pbulk-btn').classList.toggle('active',m==='bulk');
+  document.getElementById('pman-btn').classList.toggle('active',m==='manual');
+}
+function pBulkImport(){
+  const err=document.getElementById('p-bulk-err');err.textContent='';
+  const n=parseInt(document.getElementById('p-bulk-n').value);
+  const start=document.getElementById('p-bulk-start').value;
+  const amt=parseFloat(document.getElementById('p-bulk-amt').value)||0;
+  if(!n||n<1){err.textContent='Enter number of payments.';return;}
+  if(!start){err.textContent='Enter first payment month.';return;}
+  const[yr,mo]=start.split('-').map(Number);
+  for(let i=0;i<n;i++){const d=new Date(yr,mo-1+i,1);pPays.push({id:++pPayId,month:d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'),amt,plan:'IBR',q:true,notes:'Bulk import'});}
+  pRenderPays();pOv();
+  ['p-bulk-n','p-bulk-start','p-bulk-amt'].forEach(id=>document.getElementById(id).value='');
+}
+function pManAdd(){
+  const err=document.getElementById('p-man-err');err.textContent='';
+  const mo=document.getElementById('p-man-mo').value;
+  if(!mo){err.textContent='Select a month.';return;}
+  pPays.push({id:++pPayId,month:mo,amt:parseFloat(document.getElementById('p-man-amt').value)||0,plan:document.getElementById('p-man-plan').value,q:document.getElementById('p-man-qual').checked,notes:document.getElementById('p-man-notes').value.trim()});
+  pPays.sort((a,b)=>a.month.localeCompare(b.month));
+  pRenderPays();pOv();
+  ['p-man-mo','p-man-amt','p-man-notes'].forEach(id=>document.getElementById(id).value='');
+}
+function pRemPay(id){pPays=pPays.filter(p=>p.id!==id);pRenderPays();pOv();}
+function pRenderPays(){
+  const tb=document.getElementById('p-pay-tbody'),empty=document.getElementById('p-pay-empty'),lbl=document.getElementById('p-pay-label');
+  tb.innerHTML='';
+  const q=pPays.filter(p=>p.q).length;
+  lbl.textContent=pPays.length+' logged · '+q+' qualifying';
+  if(!pPays.length){empty.style.display='block';return;}empty.style.display='none';
+  let qn=0;
+  pPays.forEach(p=>{
+    if(p.q)qn++;
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td style="font-family:'DM Mono',monospace;font-size:0.72rem;color:var(--muted)">${p.q?qn:'—'}</td><td>${pMo(p.month)}</td><td>${p.amt?$f(p.amt):'—'}</td><td style="font-family:'DM Mono',monospace;font-size:0.74rem">${p.plan}</td><td><span class="q-badge ${p.q?'yes':'no'}">${p.q?'YES':'NO'}</span></td><td style="font-size:0.77rem;color:var(--muted)">${x(p.notes||'')}</td><td><button class="remove-btn" onclick="pRemPay(${p.id})">✕</button></td>`;
+    tb.appendChild(tr);
+  });
+}
+
+// Employment
+const EMP_N={government:{c:'ok',t:'✓ Government employers qualify for PSLF.'},'501c3':{c:'ok',t:'✓ 501(c)(3) nonprofits qualify for PSLF.'},'other-nonprofit':{c:'ok',t:'✓ May qualify — verify with your servicer.'},private:{c:'warn',t:'⚠ Private / for-profit employers do not qualify.'}};
+function updEmpNote(){const t=document.getElementById('emp-type').value,n=EMP_N[t],el=document.getElementById('emp-note');el.className='type-note '+n.c;el.textContent=n.t;}
+function pAddEmp(){
+  const err=document.getElementById('emp-err');err.textContent='';
+  const name=document.getElementById('emp-name').value.trim();
+  if(!name){err.textContent='Enter employer name.';return;}
+  const start=document.getElementById('emp-start').value;
+  if(!start){err.textContent='Enter start date.';return;}
+  pEmps.push({id:++pEmpId,name,type:document.getElementById('emp-type').value,fp:document.getElementById('emp-fp').value,start,end:document.getElementById('emp-end').value||'',ecf:document.getElementById('emp-ecf').value});
+  pRenderEmps();pOv();
+  ['emp-name','emp-start','emp-end'].forEach(id=>document.getElementById(id).value='');
+}
+function pRemEmp(id){pEmps=pEmps.filter(e=>e.id!==id);pRenderEmps();pOv();}
+function pRenderEmps(){
+  const el=document.getElementById('pslf-emp-list'),empty=document.getElementById('emp-empty');
+  el.innerHTML='';
+  if(!pEmps.length){empty.style.display='block';return;}empty.style.display='none';
+  pEmps.forEach(e=>{
+    const n=EMP_N[e.type],cur=!e.end;
+    const div=document.createElement('div');div.className='emp-card';
+    div.innerHTML=`<button class="remove-btn" onclick="pRemEmp(${e.id})">✕</button><div class="emp-name">${x(e.name)}${cur?' <span class="loan-tag ok-tag">CURRENT</span>':''}</div><div class="emp-meta">${e.type.replace('-',' ').toUpperCase()} · ${e.fp==='full'?'Full-time':'Part-time'} · ${pMo(e.start)} – ${e.end?pMo(e.end):'Present'} · ECF: ${e.ecf.toUpperCase()}</div><div class="type-note ${n.c}" style="margin-top:8px;font-size:0.76rem">${n.t}</div>`;
+    el.appendChild(div);
+  });
+}
+
+// IDR
+const FPL={'48':[15060,20440,25820,31200,36580,41960,47340,52720],alaska:[18810,25540,32270,39000,45730,52460,59190,65920],hawaii:[17310,23500,29700,35880,42060,48240,54420,60600]};
+function getFPL(s,f){const t=FPL[s],i=Math.min(Math.max(f,1),8)-1;return f>8?t[7]+(f-8)*(s==='48'?5380:s==='alaska'?6730:6200):t[i];}
+function calcIDR(){
+  const agi=+document.getElementById('idr-agi').value||0;
+  const fam=+document.getElementById('idr-fam').value||1;
+  const state=document.getElementById('idr-state').value;
+  const plan=document.getElementById('idr-plan').value;
+  const bal=+document.getElementById('idr-bal').value||0;
+  const out=document.getElementById('idr-out');
+  if(!agi){out.innerHTML='';return;}
+  const fpl=getFPL(state,fam);
+  let pct,mult,lbl,warn=null;
+  switch(plan){case'SAVE':pct=0.05;mult=2.25;lbl='SAVE — 5% of discretionary income (undergrad); 10% grad. 225% FPL.';warn='SAVE plan subject to ongoing legal challenges as of 2025.';break;case'IBR-new':pct=0.10;mult=1.5;lbl='IBR (post-2014) — 10% above 150% FPL.';break;case'IBR-old':pct=0.15;mult=1.5;lbl='IBR (pre-2014) — 15% above 150% FPL.';break;case'PAYE':pct=0.10;mult=1.5;lbl='PAYE — 10% above 150% FPL.';break;case'ICR':pct=0.20;mult=1.0;lbl='ICR — 20% above 100% FPL.';break;}
+  const disc=Math.max(0,agi-mult*fpl),mo=disc*pct/12;
+  if(mo<=0){out.innerHTML=`<div class="idr-warn">Estimated IDR payment is <strong>$0/month</strong>. A $0 payment on a qualifying plan still counts toward PSLF.</div>`;return;}
+  out.innerHTML=`<div class="idr-result"><div class="idr-lbl">Estimated Monthly IDR Payment</div><div class="idr-pay">${$f(mo)}/month</div><p>${lbl}</p><p style="margin-top:6px;font-size:0.75rem;opacity:0.85">AGI: ${$f(agi)} · Family of ${fam} · FPL (${(mult*100).toFixed(0)}%): ${$f(mult*fpl)} · Discretionary: ${$f(disc)}</p>${bal>0?`<p style="margin-top:6px;font-size:0.75rem;opacity:0.85">Rough forgiven balance after 120 payments: <strong>${$f(Math.max(0,bal-(mo*120)))}</strong></p>`:''}</div>${warn?`<div class="idr-warn" style="margin-top:10px">${warn}</div>`:''}`;
+}
+function pMo(m){if(!m)return'';const[yr,mo]=m.split('-').map(Number);return new Date(yr,mo-1,1).toLocaleDateString('en-US',{month:'short',year:'numeric'});}
+
+// ── Init ──
+addDebt({name:'Chase Visa',type:'Credit Card',balance:4800,apr:22.99,minPayment:96});
+addDebt({name:'Student Loan',type:'Student Loan',balance:18500,apr:6.54,minPayment:210});
+addDebt({name:'Car Loan',type:'Auto Loan',balance:11200,apr:7.9,minPayment:245});
+onStrategyChange();
+pRenderLoans();pRenderPays();pRenderEmps();pOv();
+</script>
+</body>
+</html>
