@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="tool-name" content="Scholarship Value Estimator">
+  <meta name="tool-description" content="See how much your scholarship time is really worth — and how it compares to working a job.">
+  <meta name="tool-icon" content="🎓">
+  <meta name="tool-tags" content="scholarships, college, financial aid, time value">
+  <title>Scholarship Value Estimator</title>
+  <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ink:          #1c1c2e;
+      --paper:        #f4f0e8;
+      --cream:        #ece7da;
+      --white:        #ffffff;
+      --accent:       #8b1a1a;
+      --accent-light: #f0dede;
+      --muted:        #7a7262;
+      --border:       #d4cebe;
+      --green:        #2d5a3d;
+      --green-light:  #d8ece1;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Lora', Georgia, serif;
+      background: var(--paper);
+      color: var(--ink);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* HEADER */
+    header {
+      background: var(--ink);
+      padding: 14px 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 3px solid var(--accent);
+      flex-shrink: 0;
+    }
+    .header-left { display: flex; flex-direction: column; gap: 2px; }
+    header h1 { color: var(--paper); font-size: 1.1rem; font-weight: 600; letter-spacing: 0.02em; }
+    .subtitle { font-family: 'DM Mono', monospace; font-size: 0.62rem; color: #5a5a7a; letter-spacing: 0.1em; text-transform: uppercase; }
+    .header-right { display: flex; align-items: center; gap: 14px; }
+    .back-link { font-family: 'DM Mono', monospace; font-size: 0.68rem; color: #5a5a7a; text-decoration: none; letter-spacing: 0.06em; transition: color 0.15s; }
+    .back-link:hover { color: var(--paper); }
+
+    /* MAIN */
+    main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      max-width: 820px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 28px 24px 60px;
+      gap: 20px;
+    }
+
+    /* PANELS */
+    .panel { background: var(--white); border: 1px solid var(--border); border-radius: 4px; overflow: hidden; }
+    .panel-header { background: var(--cream); border-bottom: 1px solid var(--border); padding: 11px 20px; display: flex; align-items: center; gap: 10px; }
+    .panel-header h2 { font-size: 0.88rem; font-weight: 600; }
+    .panel-body { padding: 20px; }
+    .step-badge { font-family: 'DM Mono', monospace; font-size: 0.62rem; background: var(--ink); color: var(--paper); padding: 2px 8px; border-radius: 2px; letter-spacing: 0.06em; flex-shrink: 0; }
+    .results-badge { font-family: 'DM Mono', monospace; font-size: 0.62rem; background: var(--green); color: white; padding: 2px 8px; border-radius: 2px; letter-spacing: 0.06em; flex-shrink: 0; }
+
+    /* FORM GRID */
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    @media (max-width: 540px) { .form-grid { grid-template-columns: 1fr; } }
+
+    .field { display: flex; flex-direction: column; gap: 6px; }
+    .field label { font-family: 'DM Mono', monospace; font-size: 0.72rem; color: var(--muted); letter-spacing: 0.05em; text-transform: uppercase; }
+    .field .hint { font-size: 0.78rem; color: var(--muted); font-style: italic; line-height: 1.4; margin-top: 2px; }
+
+    .input-prefix-wrap { display: flex; align-items: stretch; border: 1px solid var(--border); border-radius: 3px; overflow: hidden; background: var(--paper); transition: border-color 0.15s; }
+    .input-prefix-wrap:focus-within { border-color: var(--ink); }
+    .input-prefix { font-family: 'DM Mono', monospace; font-size: 0.82rem; padding: 10px 12px; background: var(--cream); color: var(--muted); border-right: 1px solid var(--border); display: flex; align-items: center; }
+    .input-prefix-wrap input { border: none; background: transparent; font-family: 'DM Mono', monospace; font-size: 0.82rem; padding: 10px 12px; color: var(--ink); outline: none; width: 100%; }
+
+    input[type="number"], input[type="text"] {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.82rem;
+      padding: 10px 14px;
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      background: var(--paper);
+      color: var(--ink);
+      outline: none;
+      transition: border-color 0.15s;
+      width: 100%;
+    }
+    input:focus { border-color: var(--ink); }
+
+    /* Remove spinners */
+    input[type=number]::-webkit-inner-spin-button,
+    input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+    input[type=number] { -moz-appearance: textfield; }
+
+    /* BUTTONS */
+    .btn-row { display: flex; gap: 10px; margin-top: 4px; flex-wrap: wrap; }
+    button { font-family: 'Lora', serif; font-size: 0.85rem; padding: 10px 18px; border: none; border-radius: 3px; cursor: pointer; transition: opacity 0.15s, transform 0.1s; white-space: nowrap; }
+    button:active { transform: scale(0.98); }
+    button:disabled { opacity: 0.38; cursor: not-allowed; }
+    .btn-accent { background: var(--accent); color: white; }
+    .btn-accent:hover:not(:disabled) { opacity: 0.85; }
+    .btn-ghost { background: transparent; border: 1px solid var(--border); color: var(--muted); }
+    .btn-ghost:hover:not(:disabled) { border-color: var(--ink); color: var(--ink); }
+
+    /* DIVIDER */
+    .section-divider { border: none; border-top: 1px solid var(--border); margin: 16px 0; }
+
+    /* RESULTS */
+    #results-panel { display: none; }
+
+    .results-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    @media (max-width: 540px) { .results-grid { grid-template-columns: 1fr; } }
+
+    .result-card {
+      background: var(--paper);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .result-card.highlight {
+      background: var(--green-light);
+      border-color: var(--green);
+    }
+    .result-card.warn {
+      background: var(--accent-light);
+      border-color: var(--accent);
+    }
+    .result-label { font-family: 'DM Mono', monospace; font-size: 0.66rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+    .result-value { font-family: 'DM Mono', monospace; font-size: 1.45rem; font-weight: 500; color: var(--ink); line-height: 1.1; }
+    .result-value.green { color: var(--green); }
+    .result-value.red { color: var(--accent); }
+    .result-sub { font-size: 0.78rem; color: var(--muted); font-style: italic; margin-top: 2px; line-height: 1.4; }
+
+    /* VERDICT */
+    .verdict-box {
+      border-radius: 3px;
+      padding: 18px 20px;
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      margin-top: 4px;
+    }
+    .verdict-box.good { background: var(--green-light); border: 1px solid var(--green); }
+    .verdict-box.bad  { background: var(--accent-light); border: 1px solid var(--accent); }
+    .verdict-box.neutral { background: var(--cream); border: 1px solid var(--border); }
+    .verdict-icon { font-size: 1.6rem; flex-shrink: 0; line-height: 1; }
+    .verdict-text { display: flex; flex-direction: column; gap: 4px; }
+    .verdict-title { font-weight: 600; font-size: 0.95rem; }
+    .verdict-desc { font-size: 0.84rem; color: var(--muted); line-height: 1.5; }
+
+    /* EXPLAINER NOTES */
+    .explainer { font-size: 0.82rem; color: var(--muted); font-style: italic; line-height: 1.55; padding: 12px 16px; background: var(--cream); border-left: 3px solid var(--border); border-radius: 0 3px 3px 0; margin-top: 14px; }
+    .explainer strong { font-style: normal; color: var(--ink); }
+
+    /* ERROR */
+    .error-line { font-family: 'DM Mono', monospace; font-size: 0.74rem; color: var(--accent); margin-top: 8px; min-height: 18px; }
+
+    /* INTRO */
+    .intro { font-size: 0.9rem; color: var(--muted); line-height: 1.6; }
+    .intro strong { color: var(--ink); }
+
+    /* SECTION LABEL */
+    .section-label {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--muted);
+      margin-bottom: 12px;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="header-left">
+    <h1>Scholarship Value Estimator</h1>
+    <div class="subtitle">Educator Finance Tools · v1.0</div>
+  </div>
+  <div class="header-right">
+    <a class="back-link" href="index.html">← All Tools</a>
+  </div>
+</header>
+
+<main>
+
+  <!-- INTRO -->
+  <p class="intro">
+    Scholarships are <strong>tax-free money</strong> — which means they're worth more than the same amount earned at a job.
+    This tool helps you figure out your effective hourly rate from applying, and how that compares to just working more hours.
+  </p>
+
+  <!-- STEP 1: Scholarship Info -->
+  <div class="panel">
+    <div class="panel-header">
+      <span class="step-badge">STEP 1</span>
+      <h2>Your Scholarship Application</h2>
+    </div>
+    <div class="panel-body">
+      <div class="form-grid">
+
+        <div class="field">
+          <label>Scholarship Amount</label>
+          <div class="input-prefix-wrap">
+            <span class="input-prefix">$</span>
+            <input type="number" id="scholarship-amount" placeholder="1000" min="0" step="1" />
+          </div>
+          <span class="hint">The dollar value of the award if you win.</span>
+        </div>
+
+        <div class="field">
+          <label>Hours Spent Applying</label>
+          <div class="input-prefix-wrap">
+            <span class="input-prefix">hrs</span>
+            <input type="number" id="hours-applying" placeholder="10" min="0.5" step="0.5" />
+          </div>
+          <span class="hint">Total hours writing essays, gathering materials, and submitting.</span>
+        </div>
+
+        <div class="field">
+          <label>Your Success Rate</label>
+          <div class="input-prefix-wrap">
+            <span class="input-prefix">%</span>
+            <input type="number" id="success-rate" placeholder="20" min="1" max="100" step="1" />
+          </div>
+          <span class="hint">Rough % of applications you expect to win. 20% is a reasonable starting estimate.</span>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 2: Job Comparison -->
+  <div class="panel">
+    <div class="panel-header">
+      <span class="step-badge">STEP 2</span>
+      <h2>Your Job (for comparison)</h2>
+    </div>
+    <div class="panel-body">
+      <div class="form-grid">
+
+        <div class="field">
+          <label>Hourly Wage</label>
+          <div class="input-prefix-wrap">
+            <span class="input-prefix">$/hr</span>
+            <input type="number" id="hourly-wage" placeholder="15" min="1" step="0.25" />
+          </div>
+          <span class="hint">What you earn (or would earn) per hour at a job.</span>
+        </div>
+
+        <div class="field">
+          <label>Your Marginal Tax Rate</label>
+          <div class="input-prefix-wrap">
+            <span class="input-prefix">%</span>
+            <input type="number" id="tax-rate" placeholder="12" min="0" max="50" step="1" />
+          </div>
+          <span class="hint">The % of your next earned dollar that goes to taxes. Most college students: 10–22%. Unsure? Use 12%.</span>
+        </div>
+
+      </div>
+
+      <div class="explainer">
+        <strong>Why does tax rate matter?</strong> Wages are taxed; scholarship money generally isn't (for tuition and fees). 
+        A $1,000 scholarship is worth the same as earning roughly $1,136 at a job if your tax rate is 12% — because you'd owe 
+        about $136 in taxes on the wages but nothing on the scholarship.
+      </div>
+
+      <div class="error-line" id="error-line"></div>
+
+      <div class="btn-row" style="margin-top: 16px;">
+        <button class="btn-accent" onclick="calculate()">Calculate</button>
+        <button class="btn-ghost" onclick="resetForm()">Reset</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- RESULTS -->
+  <div class="panel" id="results-panel">
+    <div class="panel-header">
+      <span class="results-badge">RESULTS</span>
+      <h2>Your Scholarship Value</h2>
+    </div>
+    <div class="panel-body">
+
+      <div class="section-label">Scholarship Math</div>
+      <div class="results-grid">
+
+        <div class="result-card">
+          <div class="result-label">Scholarship Amount</div>
+          <div class="result-value" id="res-amount">—</div>
+          <div class="result-sub">The award you're applying for.</div>
+        </div>
+
+        <div class="result-card">
+          <div class="result-label">Monetary Target to Apply For</div>
+          <div class="result-value" id="res-target">—</div>
+          <div class="result-sub" id="res-target-sub">—</div>
+        </div>
+
+        <div class="result-card highlight">
+          <div class="result-label">Your Effective Hourly Rate</div>
+          <div class="result-value green" id="res-scholarship-rate">—</div>
+          <div class="result-sub" id="res-scholarship-rate-sub">—</div>
+        </div>
+
+        <div class="result-card">
+          <div class="result-label">Tax-Equivalent Value</div>
+          <div class="result-value" id="res-equiv">—</div>
+          <div class="result-sub" id="res-equiv-sub">—</div>
+        </div>
+
+      </div>
+
+      <hr class="section-divider" />
+
+      <div class="section-label">Job Comparison</div>
+      <div class="results-grid">
+
+        <div class="result-card">
+          <div class="result-label">Your After-Tax Hourly Wage</div>
+          <div class="result-value" id="res-after-tax-wage">—</div>
+          <div class="result-sub" id="res-after-tax-wage-sub">—</div>
+        </div>
+
+        <div class="result-card">
+          <div class="result-label">Hours of Work to Match</div>
+          <div class="result-value" id="res-hours-to-match">—</div>
+          <div class="result-sub" id="res-hours-to-match-sub">—</div>
+        </div>
+
+      </div>
+
+      <hr class="section-divider" />
+
+      <div id="verdict-box" class="verdict-box neutral">
+        <div class="verdict-icon" id="verdict-icon">📊</div>
+        <div class="verdict-text">
+          <div class="verdict-title" id="verdict-title">—</div>
+          <div class="verdict-desc" id="verdict-desc">—</div>
+        </div>
+      </div>
+
+      <div class="explainer" style="margin-top:16px;">
+        <strong>How to read this:</strong> Your effective hourly rate from applying accounts for the fact that you won't win every scholarship — 
+        it spreads the expected value of winning across all the time you spend applying (including the applications you don't win). 
+        If that rate beats your after-tax hourly wage, applying for scholarships is a better use of your time, financially speaking.
+      </div>
+
+    </div>
+  </div>
+
+</main>
+
+<script>
+  function fmt(n) {
+    return '$' + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  function fmtHrs(n) {
+    return n.toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + ' hrs';
+  }
+
+  function calculate() {
+    const errEl = document.getElementById('error-line');
+    errEl.textContent = '';
+
+    const amount      = parseFloat(document.getElementById('scholarship-amount').value);
+    const hours       = parseFloat(document.getElementById('hours-applying').value);
+    const successPct  = parseFloat(document.getElementById('success-rate').value);
+    const wage        = parseFloat(document.getElementById('hourly-wage').value);
+    const taxPct      = parseFloat(document.getElementById('tax-rate').value);
+
+    // Validation
+    if (isNaN(amount) || amount <= 0)           { errEl.textContent = 'Enter a scholarship amount greater than $0.'; return; }
+    if (isNaN(hours) || hours <= 0)             { errEl.textContent = 'Enter hours spent applying (must be > 0).'; return; }
+    if (isNaN(successPct) || successPct <= 0 || successPct > 100) { errEl.textContent = 'Success rate must be between 1% and 100%.'; return; }
+    if (isNaN(wage) || wage <= 0)               { errEl.textContent = 'Enter your hourly wage.'; return; }
+    if (isNaN(taxPct) || taxPct < 0 || taxPct >= 100) { errEl.textContent = 'Tax rate must be between 0% and 99%.'; return; }
+
+    const successRate = successPct / 100;
+    const taxRate     = taxPct / 100;
+
+    // Core calculations
+    const monetaryTarget   = amount / successRate;           // how much to apply for
+    const awardPerHour     = amount / hours;                 // effective hourly rate (scholarship)
+    const taxEquivalent    = amount / (1 - taxRate);         // pre-tax wages needed to net same amount
+    const afterTaxWage     = wage * (1 - taxRate);           // job hourly after tax
+    const hoursToMatch     = taxEquivalent / wage;           // hours of work to match scholarship after tax
+
+    // Populate results
+    document.getElementById('res-amount').textContent     = fmt(amount);
+
+    document.getElementById('res-target').textContent     = fmt(monetaryTarget);
+    document.getElementById('res-target-sub').textContent =
+      `Apply for ${fmt(monetaryTarget)} total across scholarships to expect ${fmt(amount)} in awards (at a ${successPct}% win rate).`;
+
+    document.getElementById('res-scholarship-rate').textContent = fmt(awardPerHour) + '/hr';
+    document.getElementById('res-scholarship-rate-sub').textContent =
+      `${fmt(amount)} award ÷ ${hours} hrs applying. Tax-free.`;
+
+    document.getElementById('res-equiv').textContent     = fmt(taxEquivalent);
+    document.getElementById('res-equiv-sub').textContent =
+      `Pre-tax wages you'd need to earn to end up with ${fmt(amount)} after ${taxPct}% taxes.`;
+
+    document.getElementById('res-after-tax-wage').textContent     = fmt(afterTaxWage) + '/hr';
+    document.getElementById('res-after-tax-wage-sub').textContent =
+      `${fmt(wage)}/hr × (1 − ${taxPct}%) = ${fmt(afterTaxWage)}/hr in your pocket.`;
+
+    document.getElementById('res-hours-to-match').textContent     = fmtHrs(hoursToMatch);
+    document.getElementById('res-hours-to-match-sub').textContent =
+      `You'd need to work ${fmtHrs(hoursToMatch)} to take home ${fmt(amount)} after taxes.`;
+
+    // Verdict
+    const verdictBox   = document.getElementById('verdict-box');
+    const verdictIcon  = document.getElementById('verdict-icon');
+    const verdictTitle = document.getElementById('verdict-title');
+    const verdictDesc  = document.getElementById('verdict-desc');
+
+    verdictBox.className = 'verdict-box';
+
+    const ratio = awardPerHour / afterTaxWage;
+
+    if (ratio >= 2) {
+      verdictBox.classList.add('good');
+      verdictIcon.textContent = '🏆';
+      verdictTitle.textContent = 'Applying is significantly more valuable than working';
+      verdictDesc.textContent =
+        `Your scholarship effective rate (${fmt(awardPerHour)}/hr) is ${ratio.toFixed(1)}× your after-tax wage (${fmt(afterTaxWage)}/hr). `
+        + `If you can win at your expected rate, every hour spent on applications is worth far more than an hour on the job.`;
+    } else if (ratio >= 1.1) {
+      verdictBox.classList.add('good');
+      verdictIcon.textContent = '✅';
+      verdictTitle.textContent = 'Applying is more valuable than working';
+      verdictDesc.textContent =
+        `Your scholarship effective rate (${fmt(awardPerHour)}/hr) beats your after-tax wage (${fmt(afterTaxWage)}/hr). `
+        + `The tax-free nature of scholarships makes this better than earning the same amount at a job.`;
+    } else if (ratio >= 0.85) {
+      verdictBox.classList.add('neutral');
+      verdictIcon.textContent = '⚖️';
+      verdictTitle.textContent = 'About a wash — other factors may decide it';
+      verdictDesc.textContent =
+        `Your scholarship effective rate (${fmt(awardPerHour)}/hr) is close to your after-tax wage (${fmt(afterTaxWage)}/hr). `
+        + `Consider non-financial factors: scholarship awards can look good on a résumé, and winning may open doors to more opportunities.`;
+    } else {
+      verdictBox.classList.add('bad');
+      verdictIcon.textContent = '⚠️';
+      verdictTitle.textContent = 'Working may be a better use of your time';
+      verdictDesc.textContent =
+        `Your scholarship effective rate (${fmt(awardPerHour)}/hr) is below your after-tax wage (${fmt(afterTaxWage)}/hr). `
+        + `Consider applying for larger scholarships, spending fewer hours per application, or improving your success rate by targeting scholarships you're a strong fit for.`;
+    }
+
+    // Show results
+    const panel = document.getElementById('results-panel');
+    panel.style.display = 'block';
+    panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function resetForm() {
+    ['scholarship-amount','hours-applying','success-rate','hourly-wage','tax-rate'].forEach(id => {
+      document.getElementById(id).value = '';
+    });
+    document.getElementById('error-line').textContent = '';
+    document.getElementById('results-panel').style.display = 'none';
+  }
+</script>
+
+</body>
+</html>
