@@ -41,6 +41,18 @@
     ]
   },
   {
+    "file": "tool-scholarship-estimator.html",
+    "name": "Scholarship Value Estimator",
+    "description": "See how much your scholarship time is really worth \u2014 and how it compares to working a job.",
+    "icon": "\ud83c\udf93",
+    "tags": [
+      "scholarships",
+      "college",
+      "financial aid",
+      "time value"
+    ]
+  },
+  {
     "file": "tool-wrs-retirement-estimator.html",
     "name": "WRS Retirement Estimator",
     "description": "Estimate Wisconsin Retirement System monthly benefits for General, Teacher, and Educational Support employees across multiple payment options and retirement ages.",
