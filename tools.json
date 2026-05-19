@@ -43,13 +43,14 @@
   {
     "file": "tool-scholarship-estimator.html",
     "name": "Scholarship Value Estimator",
-    "description": "See how much your scholarship time is really worth \u2014 and how it compares to working a job.",
+    "description": "See how much your scholarship time is really worth \u2014 and analyze real scholarships for eligibility fit.",
     "icon": "\ud83c\udf93",
     "tags": [
       "scholarships",
       "college",
       "financial aid",
-      "time value"
+      "time value",
+      "AI"
     ]
   },
   {
