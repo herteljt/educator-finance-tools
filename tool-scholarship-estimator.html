@@ -4,9 +4,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="tool-name" content="Scholarship Value Estimator">
-  <meta name="tool-description" content="See how much your scholarship time is really worth — and how it compares to working a job.">
+  <meta name="tool-description" content="See how much your scholarship time is really worth — and analyze real scholarships for eligibility fit.">
   <meta name="tool-icon" content="🎓">
-  <meta name="tool-tags" content="scholarships, college, financial aid, time value">
+  <meta name="tool-tags" content="scholarships, college, financial aid, time value, AI">
   <title>Scholarship Value Estimator</title>
   <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
   <style>
@@ -51,6 +51,37 @@
     .back-link { font-family: 'DM Mono', monospace; font-size: 0.68rem; color: #5a5a7a; text-decoration: none; letter-spacing: 0.06em; transition: color 0.15s; }
     .back-link:hover { color: var(--paper); }
 
+    /* TABS */
+    .tab-bar {
+      background: var(--ink);
+      display: flex;
+      padding: 0 28px;
+      gap: 4px;
+    }
+    .tab-btn {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.72rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding: 10px 16px;
+      border: none;
+      background: transparent;
+      color: #5a5a7a;
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+      margin-bottom: -1px;
+      transition: color 0.15s, border-color 0.15s;
+      border-radius: 0;
+      white-space: nowrap;
+    }
+    .tab-btn:active { transform: none; }
+    .tab-btn:hover { color: var(--paper); }
+    .tab-btn.active { color: var(--paper); border-bottom-color: var(--accent); }
+
+    /* TAB CONTENT */
+    .tab-content { display: none; flex-direction: column; }
+    .tab-content.active { display: flex; }
+
     /* MAIN */
     main {
       flex: 1;
@@ -68,8 +99,8 @@
     .panel-header { background: var(--cream); border-bottom: 1px solid var(--border); padding: 11px 20px; display: flex; align-items: center; gap: 10px; }
     .panel-header h2 { font-size: 0.88rem; font-weight: 600; }
     .panel-body { padding: 20px; }
-    .step-badge { font-family: 'DM Mono', monospace; font-size: 0.62rem; background: var(--ink); color: var(--paper); padding: 2px 8px; border-radius: 2px; letter-spacing: 0.06em; flex-shrink: 0; }
-    .results-badge { font-family: 'DM Mono', monospace; font-size: 0.62rem; background: var(--green); color: white; padding: 2px 8px; border-radius: 2px; letter-spacing: 0.06em; flex-shrink: 0; }
+    .step-badge    { font-family: 'DM Mono', monospace; font-size: 0.62rem; background: var(--ink);   color: var(--paper); padding: 2px 8px; border-radius: 2px; letter-spacing: 0.06em; flex-shrink: 0; }
+    .results-badge { font-family: 'DM Mono', monospace; font-size: 0.62rem; background: var(--green); color: white;        padding: 2px 8px; border-radius: 2px; letter-spacing: 0.06em; flex-shrink: 0; }
 
     /* FORM GRID */
     .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
@@ -77,28 +108,26 @@
 
     .field { display: flex; flex-direction: column; gap: 6px; }
     .field label { font-family: 'DM Mono', monospace; font-size: 0.72rem; color: var(--muted); letter-spacing: 0.05em; text-transform: uppercase; }
-    .field .hint { font-size: 0.78rem; color: var(--muted); font-style: italic; line-height: 1.4; margin-top: 2px; }
+    .field .hint  { font-size: 0.78rem; color: var(--muted); font-style: italic; line-height: 1.4; margin-top: 2px; }
 
     .input-prefix-wrap { display: flex; align-items: stretch; border: 1px solid var(--border); border-radius: 3px; overflow: hidden; background: var(--paper); transition: border-color 0.15s; }
     .input-prefix-wrap:focus-within { border-color: var(--ink); }
-    .input-prefix { font-family: 'DM Mono', monospace; font-size: 0.82rem; padding: 10px 12px; background: var(--cream); color: var(--muted); border-right: 1px solid var(--border); display: flex; align-items: center; }
+    .input-prefix { font-family: 'DM Mono', monospace; font-size: 0.82rem; padding: 10px 12px; background: var(--cream); color: var(--muted); border-right: 1px solid var(--border); display: flex; align-items: center; white-space: nowrap; }
     .input-prefix-wrap input { border: none; background: transparent; font-family: 'DM Mono', monospace; font-size: 0.82rem; padding: 10px 12px; color: var(--ink); outline: none; width: 100%; }
 
-    input[type="number"], input[type="text"] {
-      font-family: 'DM Mono', monospace;
-      font-size: 0.82rem;
-      padding: 10px 14px;
-      border: 1px solid var(--border);
-      border-radius: 3px;
-      background: var(--paper);
-      color: var(--ink);
-      outline: none;
-      transition: border-color 0.15s;
-      width: 100%;
+    input[type="number"], input[type="text"], input[type="password"] {
+      font-family: 'DM Mono', monospace; font-size: 0.82rem; padding: 10px 14px;
+      border: 1px solid var(--border); border-radius: 3px; background: var(--paper);
+      color: var(--ink); outline: none; transition: border-color 0.15s; width: 100%;
     }
     input:focus { border-color: var(--ink); }
+    select {
+      font-family: 'DM Mono', monospace; font-size: 0.82rem; padding: 10px 14px;
+      border: 1px solid var(--border); border-radius: 3px; background: var(--paper);
+      color: var(--ink); outline: none; width: 100%; cursor: pointer;
+    }
+    select:focus { border-color: var(--ink); }
 
-    /* Remove spinners */
     input[type=number]::-webkit-inner-spin-button,
     input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
     input[type=number] { -moz-appearance: textfield; }
@@ -108,80 +137,124 @@
     button { font-family: 'Lora', serif; font-size: 0.85rem; padding: 10px 18px; border: none; border-radius: 3px; cursor: pointer; transition: opacity 0.15s, transform 0.1s; white-space: nowrap; }
     button:active { transform: scale(0.98); }
     button:disabled { opacity: 0.38; cursor: not-allowed; }
-    .btn-accent { background: var(--accent); color: white; }
-    .btn-accent:hover:not(:disabled) { opacity: 0.85; }
-    .btn-ghost { background: transparent; border: 1px solid var(--border); color: var(--muted); }
-    .btn-ghost:hover:not(:disabled) { border-color: var(--ink); color: var(--ink); }
+    .btn-primary { background: var(--ink); color: var(--paper); }
+    .btn-primary:hover:not(:disabled) { opacity: 0.82; }
+    .btn-accent  { background: var(--accent); color: white; }
+    .btn-accent:hover:not(:disabled)  { opacity: 0.85; }
+    .btn-ghost   { background: transparent; border: 1px solid var(--border); color: var(--muted); }
+    .btn-ghost:hover:not(:disabled)   { border-color: var(--ink); color: var(--ink); }
+    .btn-green   { background: var(--green); color: white; font-size: 0.78rem; padding: 8px 14px; }
+    .btn-green:hover:not(:disabled)   { opacity: 0.85; }
 
     /* DIVIDER */
     .section-divider { border: none; border-top: 1px solid var(--border); margin: 16px 0; }
 
-    /* RESULTS */
+    /* TAB 1 RESULTS */
     #results-panel { display: none; }
-
     .results-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
     @media (max-width: 540px) { .results-grid { grid-template-columns: 1fr; } }
 
-    .result-card {
-      background: var(--paper);
-      border: 1px solid var(--border);
-      border-radius: 3px;
-      padding: 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-    .result-card.highlight {
-      background: var(--green-light);
-      border-color: var(--green);
-    }
-    .result-card.warn {
-      background: var(--accent-light);
-      border-color: var(--accent);
-    }
+    .result-card { background: var(--paper); border: 1px solid var(--border); border-radius: 3px; padding: 16px; display: flex; flex-direction: column; gap: 4px; }
+    .result-card.highlight { background: var(--green-light); border-color: var(--green); }
+    .result-card.warn      { background: var(--accent-light); border-color: var(--accent); }
     .result-label { font-family: 'DM Mono', monospace; font-size: 0.66rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
     .result-value { font-family: 'DM Mono', monospace; font-size: 1.45rem; font-weight: 500; color: var(--ink); line-height: 1.1; }
     .result-value.green { color: var(--green); }
-    .result-value.red { color: var(--accent); }
+    .result-value.red   { color: var(--accent); }
     .result-sub { font-size: 0.78rem; color: var(--muted); font-style: italic; margin-top: 2px; line-height: 1.4; }
 
-    /* VERDICT */
-    .verdict-box {
-      border-radius: 3px;
-      padding: 18px 20px;
-      display: flex;
-      align-items: flex-start;
-      gap: 14px;
-      margin-top: 4px;
-    }
-    .verdict-box.good { background: var(--green-light); border: 1px solid var(--green); }
-    .verdict-box.bad  { background: var(--accent-light); border: 1px solid var(--accent); }
-    .verdict-box.neutral { background: var(--cream); border: 1px solid var(--border); }
-    .verdict-icon { font-size: 1.6rem; flex-shrink: 0; line-height: 1; }
-    .verdict-text { display: flex; flex-direction: column; gap: 4px; }
+    .verdict-box { border-radius: 3px; padding: 18px 20px; display: flex; align-items: flex-start; gap: 14px; margin-top: 4px; }
+    .verdict-box.good    { background: var(--green-light);  border: 1px solid var(--green);  }
+    .verdict-box.bad     { background: var(--accent-light); border: 1px solid var(--accent); }
+    .verdict-box.neutral { background: var(--cream);        border: 1px solid var(--border); }
+    .verdict-icon  { font-size: 1.6rem; flex-shrink: 0; line-height: 1; }
+    .verdict-text  { display: flex; flex-direction: column; gap: 4px; }
     .verdict-title { font-weight: 600; font-size: 0.95rem; }
-    .verdict-desc { font-size: 0.84rem; color: var(--muted); line-height: 1.5; }
+    .verdict-desc  { font-size: 0.84rem; color: var(--muted); line-height: 1.5; }
 
-    /* EXPLAINER NOTES */
     .explainer { font-size: 0.82rem; color: var(--muted); font-style: italic; line-height: 1.55; padding: 12px 16px; background: var(--cream); border-left: 3px solid var(--border); border-radius: 0 3px 3px 0; margin-top: 14px; }
     .explainer strong { font-style: normal; color: var(--ink); }
 
-    /* ERROR */
-    .error-line { font-family: 'DM Mono', monospace; font-size: 0.74rem; color: var(--accent); margin-top: 8px; min-height: 18px; }
-
-    /* INTRO */
+    .section-label { font-family: 'DM Mono', monospace; font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); margin-bottom: 12px; }
     .intro { font-size: 0.9rem; color: var(--muted); line-height: 1.6; }
     .intro strong { color: var(--ink); }
 
-    /* SECTION LABEL */
-    .section-label {
-      font-family: 'DM Mono', monospace;
-      font-size: 0.68rem;
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
-      color: var(--muted);
-      margin-bottom: 12px;
+    /* ── TAB 2 STYLES ── */
+    .key-instructions { font-size: 0.85rem; line-height: 1.6; color: var(--muted); margin-bottom: 14px; }
+    .key-instructions ol { padding-left: 18px; margin-top: 6px; }
+    .key-instructions li { margin-bottom: 4px; }
+    .key-instructions a { color: var(--accent); }
+    .input-row { display: flex; gap: 10px; align-items: stretch; }
+    .input-row input { flex: 1; }
+    .model-row { display: flex; align-items: center; gap: 10px; margin-top: 12px; }
+    .error-line   { font-family: 'DM Mono', monospace; font-size: 0.74rem; color: var(--accent); margin-top: 8px; min-height: 18px; }
+    .success-line { font-family: 'DM Mono', monospace; font-size: 0.74rem; color: var(--green);  margin-top: 6px; min-height: 18px; }
+
+    .url-slots { display: flex; flex-direction: column; gap: 12px; }
+    .url-slot { display: flex; align-items: center; gap: 10px; }
+    .slot-num { font-family: 'DM Mono', monospace; font-size: 0.72rem; color: var(--muted); width: 20px; flex-shrink: 0; text-align: right; }
+    .url-slot input { flex: 1; }
+
+    /* Scholarship result cards */
+    .schol-results { display: flex; flex-direction: column; gap: 16px; }
+
+    .schol-card { border: 1px solid var(--border); border-radius: 4px; overflow: hidden; background: var(--white); }
+    .schol-card-header {
+      background: var(--cream); border-bottom: 1px solid var(--border);
+      padding: 12px 16px; display: flex; align-items: flex-start;
+      justify-content: space-between; gap: 12px; flex-wrap: wrap;
     }
+    .schol-card-title { font-weight: 600; font-size: 0.9rem; line-height: 1.4; flex: 1; min-width: 0; }
+    .schol-card-meta  { display: flex; gap: 8px; align-items: center; flex-shrink: 0; flex-wrap: wrap; }
+
+    .badge-amount {
+      font-family: 'DM Mono', monospace; font-size: 0.7rem;
+      background: var(--ink); color: var(--paper);
+      padding: 3px 9px; border-radius: 2px; white-space: nowrap;
+    }
+    .badge-deadline {
+      font-family: 'DM Mono', monospace; font-size: 0.7rem;
+      padding: 3px 9px; border-radius: 2px; white-space: nowrap;
+    }
+    .badge-deadline.upcoming { background: var(--accent-light); color: var(--accent); border: 1px solid var(--accent); }
+    .badge-deadline.future   { background: var(--green-light);  color: var(--green);  border: 1px solid var(--green); }
+    .badge-deadline.unknown  { background: var(--cream); color: var(--muted); border: 1px solid var(--border); }
+
+    .schol-card-body { padding: 16px; display: flex; flex-direction: column; gap: 14px; }
+
+    .fit-bar-wrap { display: flex; align-items: center; gap: 10px; }
+    .fit-label { font-family: 'DM Mono', monospace; font-size: 0.68rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; white-space: nowrap; }
+    .fit-bar-track { flex: 1; height: 7px; background: var(--cream); border-radius: 3px; overflow: hidden; border: 1px solid var(--border); }
+    .fit-bar-fill  { height: 100%; border-radius: 3px; transition: width 0.5s ease; }
+    .fit-bar-fill.high   { background: var(--green); }
+    .fit-bar-fill.medium { background: #b0853a; }
+    .fit-bar-fill.low    { background: var(--accent); }
+    .fit-pct { font-family: 'DM Mono', monospace; font-size: 0.82rem; font-weight: 500; width: 40px; text-align: right; }
+    .fit-pct.high   { color: var(--green); }
+    .fit-pct.medium { color: #b0853a; }
+    .fit-pct.low    { color: var(--accent); }
+
+    .schol-analysis { font-size: 0.85rem; line-height: 1.6; color: var(--ink); }
+    .schol-analysis p { margin-bottom: 8px; }
+    .schol-analysis p:last-child { margin-bottom: 0; }
+
+    .schol-card-footer {
+      padding: 12px 16px; background: var(--paper); border-top: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;
+    }
+    .send-note { font-size: 0.78rem; color: var(--muted); font-style: italic; }
+
+    .dots { display: flex; gap: 5px; }
+    .dot { width: 7px; height: 7px; background: var(--muted); border-radius: 50%; animation: bounce 1.2s ease-in-out infinite; }
+    .dot:nth-child(2) { animation-delay: 0.2s; }
+    .dot:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes bounce { 0%,60%,100% { transform: translateY(0); opacity: 0.4; } 30% { transform: translateY(-5px); opacity: 1; } }
+
+    .schol-card.loading .schol-card-header { background: var(--cream); }
+    .schol-card.loading .schol-card-body   { padding: 20px 16px; }
+    .schol-card.error-card { border-color: var(--accent); }
+    .schol-card.error-card .schol-card-header { background: var(--accent-light); }
+    .error-msg { font-family: 'DM Mono', monospace; font-size: 0.78rem; color: var(--accent); }
   </style>
 </head>
 <body>
@@ -189,22 +262,30 @@
 <header>
   <div class="header-left">
     <h1>Scholarship Value Estimator</h1>
-    <div class="subtitle">Educator Finance Tools · v1.0</div>
+    <div class="subtitle">Educator Finance Tools · v1.01</div>
   </div>
   <div class="header-right">
     <a class="back-link" href="index.html">← All Tools</a>
   </div>
 </header>
 
+<div class="tab-bar">
+  <button class="tab-btn active" id="tab-btn-estimator" onclick="switchTab('estimator')">📊 Value Estimator</button>
+  <button class="tab-btn" id="tab-btn-analyzer" onclick="switchTab('analyzer')">🔍 Scholarship Analyzer</button>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════
+     TAB 1 — VALUE ESTIMATOR
+══════════════════════════════════════════════════════ -->
+<div id="tab-estimator" class="tab-content active">
 <main>
 
-  <!-- INTRO -->
   <p class="intro">
     Scholarships are <strong>tax-free money</strong> — which means they're worth more than the same amount earned at a job.
     This tool helps you figure out your effective hourly rate from applying, and how that compares to just working more hours.
   </p>
 
-  <!-- STEP 1: Scholarship Info -->
   <div class="panel">
     <div class="panel-header">
       <span class="step-badge">STEP 1</span>
@@ -212,7 +293,6 @@
     </div>
     <div class="panel-body">
       <div class="form-grid">
-
         <div class="field">
           <label>Scholarship Amount</label>
           <div class="input-prefix-wrap">
@@ -221,7 +301,6 @@
           </div>
           <span class="hint">The dollar value of the award if you win.</span>
         </div>
-
         <div class="field">
           <label>Hours Spent Applying</label>
           <div class="input-prefix-wrap">
@@ -230,7 +309,6 @@
           </div>
           <span class="hint">Total hours writing essays, gathering materials, and submitting.</span>
         </div>
-
         <div class="field">
           <label>Your Success Rate</label>
           <div class="input-prefix-wrap">
@@ -239,12 +317,10 @@
           </div>
           <span class="hint">Rough % of applications you expect to win. 20% is a reasonable starting estimate.</span>
         </div>
-
       </div>
     </div>
   </div>
 
-  <!-- STEP 2: Job Comparison -->
   <div class="panel">
     <div class="panel-header">
       <span class="step-badge">STEP 2</span>
@@ -252,7 +328,6 @@
     </div>
     <div class="panel-body">
       <div class="form-grid">
-
         <div class="field">
           <label>Hourly Wage</label>
           <div class="input-prefix-wrap">
@@ -261,7 +336,6 @@
           </div>
           <span class="hint">What you earn (or would earn) per hour at a job.</span>
         </div>
-
         <div class="field">
           <label>Your Marginal Tax Rate</label>
           <div class="input-prefix-wrap">
@@ -270,25 +344,23 @@
           </div>
           <span class="hint">The % of your next earned dollar that goes to taxes. Most college students: 10–22%. Unsure? Use 12%.</span>
         </div>
-
       </div>
 
       <div class="explainer">
-        <strong>Why does tax rate matter?</strong> Wages are taxed; scholarship money generally isn't (for tuition and fees). 
-        A $1,000 scholarship is worth the same as earning roughly $1,136 at a job if your tax rate is 12% — because you'd owe 
+        <strong>Why does tax rate matter?</strong> Wages are taxed; scholarship money generally isn't (for tuition and fees).
+        A $1,000 scholarship is worth the same as earning roughly $1,136 at a job if your tax rate is 12% — because you'd owe
         about $136 in taxes on the wages but nothing on the scholarship.
       </div>
 
       <div class="error-line" id="error-line"></div>
 
-      <div class="btn-row" style="margin-top: 16px;">
+      <div class="btn-row" style="margin-top:16px;">
         <button class="btn-accent" onclick="calculate()">Calculate</button>
-        <button class="btn-ghost" onclick="resetForm()">Reset</button>
+        <button class="btn-ghost"  onclick="resetForm()">Reset</button>
       </div>
     </div>
   </div>
 
-  <!-- RESULTS -->
   <div class="panel" id="results-panel">
     <div class="panel-header">
       <span class="results-badge">RESULTS</span>
@@ -298,50 +370,42 @@
 
       <div class="section-label">Scholarship Math</div>
       <div class="results-grid">
-
         <div class="result-card">
           <div class="result-label">Scholarship Amount</div>
           <div class="result-value" id="res-amount">—</div>
           <div class="result-sub">The award you're applying for.</div>
         </div>
-
         <div class="result-card">
           <div class="result-label">Monetary Target to Apply For</div>
           <div class="result-value" id="res-target">—</div>
           <div class="result-sub" id="res-target-sub">—</div>
         </div>
-
         <div class="result-card highlight">
           <div class="result-label">Your Effective Hourly Rate</div>
           <div class="result-value green" id="res-scholarship-rate">—</div>
           <div class="result-sub" id="res-scholarship-rate-sub">—</div>
         </div>
-
         <div class="result-card">
           <div class="result-label">Tax-Equivalent Value</div>
           <div class="result-value" id="res-equiv">—</div>
           <div class="result-sub" id="res-equiv-sub">—</div>
         </div>
-
       </div>
 
       <hr class="section-divider" />
 
       <div class="section-label">Job Comparison</div>
       <div class="results-grid">
-
         <div class="result-card">
           <div class="result-label">Your After-Tax Hourly Wage</div>
           <div class="result-value" id="res-after-tax-wage">—</div>
           <div class="result-sub" id="res-after-tax-wage-sub">—</div>
         </div>
-
         <div class="result-card">
           <div class="result-label">Hours of Work to Match</div>
           <div class="result-value" id="res-hours-to-match">—</div>
           <div class="result-sub" id="res-hours-to-match-sub">—</div>
         </div>
-
       </div>
 
       <hr class="section-divider" />
@@ -350,13 +414,13 @@
         <div class="verdict-icon" id="verdict-icon">📊</div>
         <div class="verdict-text">
           <div class="verdict-title" id="verdict-title">—</div>
-          <div class="verdict-desc" id="verdict-desc">—</div>
+          <div class="verdict-desc"  id="verdict-desc">—</div>
         </div>
       </div>
 
       <div class="explainer" style="margin-top:16px;">
-        <strong>How to read this:</strong> Your effective hourly rate from applying accounts for the fact that you won't win every scholarship — 
-        it spreads the expected value of winning across all the time you spend applying (including the applications you don't win). 
+        <strong>How to read this:</strong> Your effective hourly rate from applying accounts for the fact that you won't win every scholarship —
+        it spreads the expected value of winning across all the time you spend applying (including the applications you don't win).
         If that rate beats your after-tax hourly wage, applying for scholarships is a better use of your time, financially speaking.
       </div>
 
@@ -364,119 +428,485 @@
   </div>
 
 </main>
+</div><!-- /tab-estimator -->
+
+
+<!-- ══════════════════════════════════════════════════════
+     TAB 2 — SCHOLARSHIP ANALYZER
+══════════════════════════════════════════════════════ -->
+<div id="tab-analyzer" class="tab-content">
+<main>
+
+  <p class="intro">
+    Paste up to four scholarship URLs. The tool fetches each page, extracts the details, and uses AI to assess
+    how well you match the eligibility requirements — so you can focus your time on your best opportunities.
+  </p>
+
+  <!-- STEP 1: API KEY -->
+  <div class="panel">
+    <div class="panel-header">
+      <span class="step-badge">STEP 1</span>
+      <h2>Enter Your Gemini API Key</h2>
+    </div>
+    <div class="panel-body">
+      <div class="key-instructions">
+        <p>Free tier available — no credit card needed.</p>
+        <ol>
+          <li>Go to <a href="https://aistudio.google.com/app/apikey" target="_blank">aistudio.google.com/app/apikey</a></li>
+          <li>Sign in with any Google account</li>
+          <li>Click <strong>Create API key</strong> and copy it</li>
+          <li>Paste it below — stored in this browser tab only</li>
+        </ol>
+      </div>
+      <div class="input-row">
+        <input type="password" id="api-key-input" placeholder="AIzaSy…" autocomplete="off" />
+        <button class="btn-primary" onclick="saveKey()">Save Key</button>
+      </div>
+      <div class="error-line"   id="key-error"></div>
+      <div class="success-line" id="key-success"></div>
+      <div class="model-row">
+        <label style="font-family:'DM Mono',monospace;font-size:0.72rem;color:var(--muted);white-space:nowrap;letter-spacing:0.04em;">MODEL</label>
+        <select id="model-select">
+          <option value="gemini-2.5-flash-lite" selected>gemini-2.5-flash-lite — fastest, most generous free tier (recommended)</option>
+          <option value="gemini-2.5-flash">gemini-2.5-flash — more capable, free tier available</option>
+          <option value="gemini-2.5-pro">gemini-2.5-pro — most capable, limited free quota</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 2: STUDENT PROFILE -->
+  <div class="panel">
+    <div class="panel-header">
+      <span class="step-badge">STEP 2</span>
+      <h2>Your Student Profile</h2>
+    </div>
+    <div class="panel-body">
+      <div class="form-grid">
+        <div class="field">
+          <label>Class Year</label>
+          <select id="profile-year">
+            <option value="">Select…</option>
+            <option>Incoming Freshman</option>
+            <option>Freshman (1st year)</option>
+            <option>Sophomore (2nd year)</option>
+            <option>Junior (3rd year)</option>
+            <option>Senior (4th/5th year)</option>
+            <option>Graduate Student</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Enrollment Status</label>
+          <select id="profile-enrollment">
+            <option value="">Select…</option>
+            <option>Full-time</option>
+            <option>Part-time</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Major(s)</label>
+          <input type="text" id="profile-major" placeholder="e.g. Elementary Education" />
+          <span class="hint">List all majors, minors, or concentrations.</span>
+        </div>
+        <div class="field">
+          <label>GPA</label>
+          <input type="number" id="profile-gpa" placeholder="3.5" min="0" max="4.0" step="0.01" />
+          <span class="hint">Leave blank if you'd rather not include it.</span>
+        </div>
+        <div class="field">
+          <label>Financial Need</label>
+          <select id="profile-need">
+            <option value="">Prefer not to say</option>
+            <option>Yes — I have demonstrated financial need</option>
+            <option>No — I do not have financial need</option>
+          </select>
+          <span class="hint">Used only to assess need-based eligibility.</span>
+        </div>
+        <div class="field">
+          <label>Additional Notes <span style="font-weight:400;text-transform:none;letter-spacing:0;">(optional)</span></label>
+          <input type="text" id="profile-notes" placeholder="e.g. first-generation student, transfer…" />
+          <span class="hint">Anything else relevant to eligibility.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 3: URLS -->
+  <div class="panel">
+    <div class="panel-header">
+      <span class="step-badge">STEP 3</span>
+      <h2>Scholarship URLs</h2>
+    </div>
+    <div class="panel-body">
+      <p style="font-size:0.85rem;color:var(--muted);margin-bottom:16px;line-height:1.55;">
+        Paste links to individual scholarship pages — any source works (college foundation sites, AcademicWorks, Fastweb, etc.).
+        Analyze 1–4 at a time.
+      </p>
+      <div class="url-slots">
+        <div class="url-slot"><span class="slot-num">1</span><input type="text" class="schol-url" placeholder="https://…" /></div>
+        <div class="url-slot"><span class="slot-num">2</span><input type="text" class="schol-url" placeholder="https://…" /></div>
+        <div class="url-slot"><span class="slot-num">3</span><input type="text" class="schol-url" placeholder="https://…" /></div>
+        <div class="url-slot"><span class="slot-num">4</span><input type="text" class="schol-url" placeholder="https://…" /></div>
+      </div>
+      <div class="error-line" id="analyze-error"></div>
+      <div class="btn-row" style="margin-top:16px;">
+        <button class="btn-accent" id="analyze-btn" onclick="analyzeAll()" disabled>Analyze Scholarships</button>
+        <button class="btn-ghost"  onclick="clearAnalyzer()">Clear</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- RESULTS -->
+  <div id="analyzer-results" style="display:none;">
+    <div class="section-label" style="margin-bottom:12px;">Analysis Results</div>
+    <div class="schol-results" id="schol-results-container"></div>
+  </div>
+
+</main>
+</div><!-- /tab-analyzer -->
+
 
 <script>
-  function fmt(n) {
-    return '$' + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+// ─── TAB SWITCHING ──────────────────────────────────────────────────
+function switchTab(name) {
+  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  document.getElementById('tab-btn-' + name).classList.add('active');
+}
+
+// ─── FORMAT HELPERS ─────────────────────────────────────────────────
+function fmt(n) {
+  return '$' + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+function fmtHrs(n) {
+  return n.toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + ' hrs';
+}
+
+// ─── TAB 1: CALCULATE ───────────────────────────────────────────────
+function calculate() {
+  const errEl = document.getElementById('error-line');
+  errEl.textContent = '';
+
+  const amount     = parseFloat(document.getElementById('scholarship-amount').value);
+  const hours      = parseFloat(document.getElementById('hours-applying').value);
+  const successPct = parseFloat(document.getElementById('success-rate').value);
+  const wage       = parseFloat(document.getElementById('hourly-wage').value);
+  const taxPct     = parseFloat(document.getElementById('tax-rate').value);
+
+  if (isNaN(amount) || amount <= 0)                             { errEl.textContent = 'Enter a scholarship amount greater than $0.'; return; }
+  if (isNaN(hours) || hours <= 0)                               { errEl.textContent = 'Enter hours spent applying (must be > 0).'; return; }
+  if (isNaN(successPct) || successPct <= 0 || successPct > 100) { errEl.textContent = 'Success rate must be between 1% and 100%.'; return; }
+  if (isNaN(wage) || wage <= 0)                                 { errEl.textContent = 'Enter your hourly wage.'; return; }
+  if (isNaN(taxPct) || taxPct < 0 || taxPct >= 100)            { errEl.textContent = 'Tax rate must be between 0% and 99%.'; return; }
+
+  const successRate    = successPct / 100;
+  const taxRate        = taxPct / 100;
+  const monetaryTarget = amount / successRate;
+  const awardPerHour   = amount / hours;
+  const taxEquivalent  = amount / (1 - taxRate);
+  const afterTaxWage   = wage * (1 - taxRate);
+  const hoursToMatch   = taxEquivalent / wage;
+
+  document.getElementById('res-amount').textContent               = fmt(amount);
+  document.getElementById('res-target').textContent               = fmt(monetaryTarget);
+  document.getElementById('res-target-sub').textContent           = `Apply for ${fmt(monetaryTarget)} total to expect ${fmt(amount)} in awards at a ${successPct}% win rate.`;
+  document.getElementById('res-scholarship-rate').textContent     = fmt(awardPerHour) + '/hr';
+  document.getElementById('res-scholarship-rate-sub').textContent = `${fmt(amount)} award ÷ ${hours} hrs applying. Tax-free.`;
+  document.getElementById('res-equiv').textContent                = fmt(taxEquivalent);
+  document.getElementById('res-equiv-sub').textContent            = `Pre-tax wages needed to net ${fmt(amount)} after ${taxPct}% taxes.`;
+  document.getElementById('res-after-tax-wage').textContent       = fmt(afterTaxWage) + '/hr';
+  document.getElementById('res-after-tax-wage-sub').textContent   = `${fmt(wage)}/hr × (1 − ${taxPct}%) = ${fmt(afterTaxWage)}/hr in your pocket.`;
+  document.getElementById('res-hours-to-match').textContent       = fmtHrs(hoursToMatch);
+  document.getElementById('res-hours-to-match-sub').textContent   = `Work ${fmtHrs(hoursToMatch)} to take home ${fmt(amount)} after taxes.`;
+
+  const vBox  = document.getElementById('verdict-box');
+  const vIcon = document.getElementById('verdict-icon');
+  const vTitle= document.getElementById('verdict-title');
+  const vDesc = document.getElementById('verdict-desc');
+  vBox.className = 'verdict-box';
+  const ratio = awardPerHour / afterTaxWage;
+
+  if (ratio >= 2) {
+    vBox.classList.add('good'); vIcon.textContent = '🏆';
+    vTitle.textContent = 'Applying is significantly more valuable than working';
+    vDesc.textContent  = `Your scholarship effective rate (${fmt(awardPerHour)}/hr) is ${ratio.toFixed(1)}× your after-tax wage (${fmt(afterTaxWage)}/hr). Every hour on applications is worth far more than an hour on the job.`;
+  } else if (ratio >= 1.1) {
+    vBox.classList.add('good'); vIcon.textContent = '✅';
+    vTitle.textContent = 'Applying is more valuable than working';
+    vDesc.textContent  = `Your scholarship effective rate (${fmt(awardPerHour)}/hr) beats your after-tax wage (${fmt(afterTaxWage)}/hr). The tax-free nature of scholarships makes this better than earning the same amount at a job.`;
+  } else if (ratio >= 0.85) {
+    vBox.classList.add('neutral'); vIcon.textContent = '⚖️';
+    vTitle.textContent = 'About a wash — other factors may decide it';
+    vDesc.textContent  = `Your scholarship effective rate (${fmt(awardPerHour)}/hr) is close to your after-tax wage (${fmt(afterTaxWage)}/hr). Consider non-financial factors: awards can look good on a résumé and may open doors.`;
+  } else {
+    vBox.classList.add('bad'); vIcon.textContent = '⚠️';
+    vTitle.textContent = 'Working may be a better use of your time';
+    vDesc.textContent  = `Your scholarship effective rate (${fmt(awardPerHour)}/hr) is below your after-tax wage (${fmt(afterTaxWage)}/hr). Consider applying for larger scholarships or targeting ones where you're a stronger fit.`;
   }
 
-  function fmtHrs(n) {
-    return n.toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + ' hrs';
+  const panel = document.getElementById('results-panel');
+  panel.style.display = 'block';
+  panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function resetForm() {
+  ['scholarship-amount','hours-applying','success-rate','hourly-wage','tax-rate'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+  document.getElementById('error-line').textContent = '';
+  document.getElementById('results-panel').style.display = 'none';
+}
+
+// Pre-fill estimator from analyzer result
+function sendToEstimator(amount) {
+  document.getElementById('scholarship-amount').value = amount;
+  switchTab('estimator');
+  setTimeout(() => {
+    document.getElementById('scholarship-amount').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }, 150);
+}
+
+// ─── TAB 2: API KEY ─────────────────────────────────────────────────
+let apiKey = '';
+
+function saveKey() {
+  const input = document.getElementById('api-key-input');
+  const val   = input.value.trim();
+  const errEl = document.getElementById('key-error');
+  const okEl  = document.getElementById('key-success');
+  errEl.textContent = '';
+  okEl.textContent  = '';
+  if (!val)                    { errEl.textContent = 'Please paste your API key.'; return; }
+  if (!val.startsWith('AIza')) { errEl.textContent = 'Key should start with "AIza". Copy it directly from Google AI Studio.'; return; }
+  if (val.length < 20)         { errEl.textContent = 'That key looks too short — make sure you copied the full key.'; return; }
+  apiKey = val;
+  input.value = '●'.repeat(16);
+  okEl.textContent = '✓ Key saved.';
+  checkReady();
+}
+
+function checkReady() {
+  const hasKey = apiKey.length > 0;
+  const hasUrl = [...document.querySelectorAll('.schol-url')].some(i => i.value.trim().startsWith('http'));
+  document.getElementById('analyze-btn').disabled = !(hasKey && hasUrl);
+}
+
+document.querySelectorAll('.schol-url').forEach(inp => inp.addEventListener('input', checkReady));
+
+// ─── TAB 2: FETCH PAGE TEXT ─────────────────────────────────────────
+async function fetchPageText(url) {
+  const proxy = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
+  const res   = await fetch(proxy);
+  if (!res.ok) throw new Error(`Could not fetch the page (HTTP ${res.status}).`);
+  const data  = await res.json();
+  if (!data.contents) throw new Error('No content returned from the page.');
+  const text = data.contents
+    .replace(/<script[\s\S]*?<\/script>/gi, '')
+    .replace(/<style[\s\S]*?<\/style>/gi, '')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&nbsp;/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+  return text.slice(0, 8000);
+}
+
+// ─── TAB 2: STUDENT PROFILE BUILDER ────────────────────────────────
+function buildProfile() {
+  const parts = [];
+  const year       = document.getElementById('profile-year').value;
+  const enrollment = document.getElementById('profile-enrollment').value;
+  const major      = document.getElementById('profile-major').value.trim();
+  const gpa        = document.getElementById('profile-gpa').value.trim();
+  const need       = document.getElementById('profile-need').value;
+  const notes      = document.getElementById('profile-notes').value.trim();
+  if (year)       parts.push(`Class year: ${year}`);
+  if (enrollment) parts.push(`Enrollment: ${enrollment}`);
+  if (major)      parts.push(`Major/minor/concentration: ${major}`);
+  if (gpa)        parts.push(`GPA: ${gpa}`);
+  if (need && need !== 'Prefer not to say') parts.push(`Financial need: ${need}`);
+  if (notes)      parts.push(`Additional: ${notes}`);
+  return parts.length ? parts.join('\n') : 'No profile information provided.';
+}
+
+// ─── TAB 2: GEMINI CALL ─────────────────────────────────────────────
+async function callGemini(prompt) {
+  const { GoogleGenerativeAI } = await import('https://esm.run/@google/generative-ai');
+  const genAI = new GoogleGenerativeAI(apiKey);
+  const model = genAI.getGenerativeModel({
+    model: document.getElementById('model-select').value,
+    generationConfig: { temperature: 0.2, maxOutputTokens: 1200 }
+  });
+  const result = await model.generateContent({ contents: [{ role: 'user', parts: [{ text: prompt }] }] });
+  const text = result.response.text();
+  if (!text) throw new Error('Empty response from Gemini.');
+  return text;
+}
+
+// ─── TAB 2: ANALYZE ALL ─────────────────────────────────────────────
+async function analyzeAll() {
+  const urls = [...document.querySelectorAll('.schol-url')]
+    .map(i => i.value.trim())
+    .filter(u => u.startsWith('http'));
+
+  if (urls.length === 0) {
+    document.getElementById('analyze-error').textContent = 'Enter at least one scholarship URL starting with https://';
+    return;
   }
+  document.getElementById('analyze-error').textContent = '';
+  document.getElementById('analyze-btn').disabled = true;
 
-  function calculate() {
-    const errEl = document.getElementById('error-line');
-    errEl.textContent = '';
+  const container = document.getElementById('schol-results-container');
+  container.innerHTML = '';
+  const resultsSection = document.getElementById('analyzer-results');
+  resultsSection.style.display = 'block';
+  resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
-    const amount      = parseFloat(document.getElementById('scholarship-amount').value);
-    const hours       = parseFloat(document.getElementById('hours-applying').value);
-    const successPct  = parseFloat(document.getElementById('success-rate').value);
-    const wage        = parseFloat(document.getElementById('hourly-wage').value);
-    const taxPct      = parseFloat(document.getElementById('tax-rate').value);
+  const profile = buildProfile();
 
-    // Validation
-    if (isNaN(amount) || amount <= 0)           { errEl.textContent = 'Enter a scholarship amount greater than $0.'; return; }
-    if (isNaN(hours) || hours <= 0)             { errEl.textContent = 'Enter hours spent applying (must be > 0).'; return; }
-    if (isNaN(successPct) || successPct <= 0 || successPct > 100) { errEl.textContent = 'Success rate must be between 1% and 100%.'; return; }
-    if (isNaN(wage) || wage <= 0)               { errEl.textContent = 'Enter your hourly wage.'; return; }
-    if (isNaN(taxPct) || taxPct < 0 || taxPct >= 100) { errEl.textContent = 'Tax rate must be between 0% and 99%.'; return; }
+  // Render loading placeholders
+  urls.forEach((url, i) => {
+    const card = document.createElement('div');
+    card.className = 'schol-card loading';
+    card.id = `schol-card-${i}`;
+    card.innerHTML = `
+      <div class="schol-card-header">
+        <div class="schol-card-title" style="color:var(--muted);font-style:italic;font-weight:400;">
+          Fetching scholarship ${i + 1}…
+        </div>
+      </div>
+      <div class="schol-card-body">
+        <div class="dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
+      </div>`;
+    container.appendChild(card);
+  });
 
-    const successRate = successPct / 100;
-    const taxRate     = taxPct / 100;
+  await Promise.all(urls.map((url, i) => analyzeOne(url, i, profile)));
+  document.getElementById('analyze-btn').disabled = false;
+  checkReady();
+}
 
-    // Core calculations
-    const monetaryTarget   = amount / successRate;           // how much to apply for
-    const awardPerHour     = amount / hours;                 // effective hourly rate (scholarship)
-    const taxEquivalent    = amount / (1 - taxRate);         // pre-tax wages needed to net same amount
-    const afterTaxWage     = wage * (1 - taxRate);           // job hourly after tax
-    const hoursToMatch     = taxEquivalent / wage;           // hours of work to match scholarship after tax
+async function analyzeOne(url, idx, profile) {
+  const card = document.getElementById(`schol-card-${idx}`);
+  try {
+    const pageText = await fetchPageText(url);
 
-    // Populate results
-    document.getElementById('res-amount').textContent     = fmt(amount);
+    const prompt = `You are helping a college student decide whether to apply for a scholarship.
 
-    document.getElementById('res-target').textContent     = fmt(monetaryTarget);
-    document.getElementById('res-target-sub').textContent =
-      `Apply for ${fmt(monetaryTarget)} total across scholarships to expect ${fmt(amount)} in awards (at a ${successPct}% win rate).`;
+SCHOLARSHIP PAGE TEXT (extracted from: ${url}):
+---
+${pageText}
+---
 
-    document.getElementById('res-scholarship-rate').textContent = fmt(awardPerHour) + '/hr';
-    document.getElementById('res-scholarship-rate-sub').textContent =
-      `${fmt(amount)} award ÷ ${hours} hrs applying. Tax-free.`;
+STUDENT PROFILE:
+${profile}
 
-    document.getElementById('res-equiv').textContent     = fmt(taxEquivalent);
-    document.getElementById('res-equiv-sub').textContent =
-      `Pre-tax wages you'd need to earn to end up with ${fmt(amount)} after ${taxPct}% taxes.`;
+Your job: extract scholarship details and assess how well this student fits the eligibility requirements.
 
-    document.getElementById('res-after-tax-wage').textContent     = fmt(afterTaxWage) + '/hr';
-    document.getElementById('res-after-tax-wage-sub').textContent =
-      `${fmt(wage)}/hr × (1 − ${taxPct}%) = ${fmt(afterTaxWage)}/hr in your pocket.`;
+Respond ONLY with valid JSON. No markdown, no code fences, no preamble. Use exactly this structure:
+{
+  "name": "Full scholarship name as written on the page",
+  "amount": "Dollar amount as written, e.g. '$1,000' or 'Varies'",
+  "amount_numeric": 1000,
+  "deadline": "Deadline date exactly as written on the page, or 'Not listed'",
+  "deadline_status": "upcoming",
+  "eligibility_summary": "2–3 sentence plain-English summary of who this scholarship is for and key requirements.",
+  "fit_score": 75,
+  "fit_label": "high",
+  "fit_explanation": "2–3 sentences explaining the match, referencing specific criteria from the scholarship and facts from the student profile.",
+  "missing_info": "Any criteria the student didn't provide info about, or 'None'"
+}
 
-    document.getElementById('res-hours-to-match').textContent     = fmtHrs(hoursToMatch);
-    document.getElementById('res-hours-to-match-sub').textContent =
-      `You'd need to work ${fmtHrs(hoursToMatch)} to take home ${fmt(amount)} after taxes.`;
+Rules:
+- deadline_status must be one of: "upcoming" (within 60 days or already past), "future" (more than 60 days away), "unknown" (not listed)
+- fit_score is 0–100. fit_label: "high" = 70+, "medium" = 40–69, "low" = 0–39
+- amount_numeric: numeric best-guess (use 0 if genuinely unknown/varies)
+- Be honest about fit. If criteria clearly exclude the student, say so plainly.
+- If the page text doesn't contain a real scholarship, set name to "Could not read scholarship page" and fit_score to 0.`;
 
-    // Verdict
-    const verdictBox   = document.getElementById('verdict-box');
-    const verdictIcon  = document.getElementById('verdict-icon');
-    const verdictTitle = document.getElementById('verdict-title');
-    const verdictDesc  = document.getElementById('verdict-desc');
-
-    verdictBox.className = 'verdict-box';
-
-    const ratio = awardPerHour / afterTaxWage;
-
-    if (ratio >= 2) {
-      verdictBox.classList.add('good');
-      verdictIcon.textContent = '🏆';
-      verdictTitle.textContent = 'Applying is significantly more valuable than working';
-      verdictDesc.textContent =
-        `Your scholarship effective rate (${fmt(awardPerHour)}/hr) is ${ratio.toFixed(1)}× your after-tax wage (${fmt(afterTaxWage)}/hr). `
-        + `If you can win at your expected rate, every hour spent on applications is worth far more than an hour on the job.`;
-    } else if (ratio >= 1.1) {
-      verdictBox.classList.add('good');
-      verdictIcon.textContent = '✅';
-      verdictTitle.textContent = 'Applying is more valuable than working';
-      verdictDesc.textContent =
-        `Your scholarship effective rate (${fmt(awardPerHour)}/hr) beats your after-tax wage (${fmt(afterTaxWage)}/hr). `
-        + `The tax-free nature of scholarships makes this better than earning the same amount at a job.`;
-    } else if (ratio >= 0.85) {
-      verdictBox.classList.add('neutral');
-      verdictIcon.textContent = '⚖️';
-      verdictTitle.textContent = 'About a wash — other factors may decide it';
-      verdictDesc.textContent =
-        `Your scholarship effective rate (${fmt(awardPerHour)}/hr) is close to your after-tax wage (${fmt(afterTaxWage)}/hr). `
-        + `Consider non-financial factors: scholarship awards can look good on a résumé, and winning may open doors to more opportunities.`;
-    } else {
-      verdictBox.classList.add('bad');
-      verdictIcon.textContent = '⚠️';
-      verdictTitle.textContent = 'Working may be a better use of your time';
-      verdictDesc.textContent =
-        `Your scholarship effective rate (${fmt(awardPerHour)}/hr) is below your after-tax wage (${fmt(afterTaxWage)}/hr). `
-        + `Consider applying for larger scholarships, spending fewer hours per application, or improving your success rate by targeting scholarships you're a strong fit for.`;
-    }
-
-    // Show results
-    const panel = document.getElementById('results-panel');
-    panel.style.display = 'block';
-    panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    const raw   = await callGemini(prompt);
+    const clean = raw.replace(/```json\s*/gi, '').replace(/```/g, '').trim();
+    const data  = JSON.parse(clean);
+    renderCard(card, data, url);
+  } catch (err) {
+    card.className = 'schol-card error-card';
+    card.innerHTML = `
+      <div class="schol-card-header">
+        <div class="schol-card-title">Could not analyze this scholarship</div>
+      </div>
+      <div class="schol-card-body">
+        <div class="error-msg">${err.message}</div>
+        <div style="font-size:0.82rem;color:var(--muted);margin-top:8px;">
+          URL: <a href="${url}" target="_blank" style="color:var(--accent);word-break:break-all;">${url}</a>
+        </div>
+        <div style="font-size:0.8rem;color:var(--muted);margin-top:8px;font-style:italic;">
+          Some scholarship sites block automated access. Try opening the page in your browser to confirm the URL is correct.
+        </div>
+      </div>`;
   }
+}
 
-  function resetForm() {
-    ['scholarship-amount','hours-applying','success-rate','hourly-wage','tax-rate'].forEach(id => {
-      document.getElementById(id).value = '';
-    });
-    document.getElementById('error-line').textContent = '';
-    document.getElementById('results-panel').style.display = 'none';
-  }
+function renderCard(card, data, url) {
+  card.className = 'schol-card';
+  const fitClass   = data.fit_label || 'medium';
+  const fillWidth  = Math.max(4, Math.min(100, data.fit_score || 0));
+  const amountText = (data.amount && data.amount !== 'Unknown') ? data.amount : 'Amount varies';
+
+  let dlClass = 'unknown';
+  if (data.deadline_status === 'upcoming') dlClass = 'upcoming';
+  if (data.deadline_status === 'future')   dlClass = 'future';
+  const dlText = (data.deadline && data.deadline !== 'Not listed')
+    ? `📅 ${data.deadline}`
+    : '📅 Deadline not listed';
+
+  card.innerHTML = `
+    <div class="schol-card-header">
+      <div class="schol-card-title">
+        <a href="${url}" target="_blank" style="color:var(--ink);text-decoration:none;border-bottom:1px dotted var(--border);">
+          ${data.name || 'Scholarship'}
+        </a>
+      </div>
+      <div class="schol-card-meta">
+        <span class="badge-amount">${amountText}</span>
+        <span class="badge-deadline ${dlClass}">${dlText}</span>
+      </div>
+    </div>
+    <div class="schol-card-body">
+      <div>
+        <div class="result-label" style="margin-bottom:6px;">Who It's For</div>
+        <div style="font-size:0.84rem;line-height:1.6;color:var(--muted);font-style:italic;">${data.eligibility_summary || '—'}</div>
+      </div>
+      <div>
+        <div class="fit-bar-wrap">
+          <span class="fit-label">Your Fit</span>
+          <div class="fit-bar-track">
+            <div class="fit-bar-fill ${fitClass}" style="width:${fillWidth}%"></div>
+          </div>
+          <span class="fit-pct ${fitClass}">${data.fit_score || 0}%</span>
+        </div>
+      </div>
+      <div class="schol-analysis">
+        <p>${data.fit_explanation || '—'}</p>
+        ${(data.missing_info && data.missing_info !== 'None')
+          ? `<p style="color:var(--muted);font-style:italic;font-size:0.8rem;margin-top:4px;">⚠ Couldn't fully assess: ${data.missing_info}</p>`
+          : ''}
+      </div>
+    </div>
+    ${data.amount_numeric > 0 ? `
+    <div class="schol-card-footer">
+      <span class="send-note">Send this amount to the Value Estimator</span>
+      <button class="btn-green" onclick="sendToEstimator(${data.amount_numeric})">→ Use in Estimator</button>
+    </div>` : ''}
+  `;
+}
+
+function clearAnalyzer() {
+  document.querySelectorAll('.schol-url').forEach(i => i.value = '');
+  document.getElementById('analyze-error').textContent = '';
+  document.getElementById('analyzer-results').style.display = 'none';
+  document.getElementById('schol-results-container').innerHTML = '';
+  checkReady();
+}
 </script>
 
 </body>
