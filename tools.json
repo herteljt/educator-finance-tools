@@ -28,6 +28,19 @@
     ]
   },
   {
+    "file": "tool-paths-to-55.html",
+    "name": "Paths to 55",
+    "description": "Compare the financial trajectory of a Wisconsin teacher (WRS pension) vs. a private-sector peer (401k) toward retirement at 55.",
+    "icon": "\u2696\ufe0f",
+    "tags": [
+      "retirement",
+      "pension",
+      "WRS",
+      "401k",
+      "comparison"
+    ]
+  },
+  {
     "file": "tool-salary-analyzer.html",
     "name": "Wisconsin Teacher Salary Analyzer",
     "description": "Analyze and compare Wisconsin public school staff salary data from DPI, with outlier filtering, experience-based estimation, and multi-district comparison.",
