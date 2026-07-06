@@ -1,0 +1,937 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="tool-name" content="Paths to 55">
+  <meta name="tool-description" content="Compare the financial trajectory of a Wisconsin teacher (WRS pension) vs. a private-sector peer (401k) toward retirement at 55.">
+  <meta name="tool-icon" content="⚖️">
+  <meta name="tool-tags" content="retirement, pension, WRS, 401k, comparison">
+  <title>Paths to 55 — Educator Finance Tools</title>
+  <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --ink: #1c1c2e; --paper: #f4f0e8; --cream: #ece7da; --white: #ffffff;
+      --accent: #8b1a1a; --accent-light: #f0dede; --muted: #7a7262; --border: #d4cebe;
+      --green: #2d5a3d; --green-light: #d8ece1;
+      --a: #1a4a6b; --a-light: #ddeaf5; --a-border: #b0cfe0;
+      --b: #4a3a1a; --b-light: #f5eedd; --b-border: #d4c4a0;
+    }
+    body { font-family: 'Lora', Georgia, serif; background: var(--paper); color: var(--ink); min-height: 100vh; display: flex; flex-direction: column; }
+
+    header { background: var(--ink); padding: 14px 28px; display: flex; align-items: center; justify-content: space-between; border-bottom: 3px solid var(--accent); flex-shrink: 0; }
+    .header-left { display: flex; flex-direction: column; gap: 2px; }
+    header h1 { color: var(--paper); font-size: 1.1rem; font-weight: 600; letter-spacing: 0.02em; }
+    .subtitle { font-family: 'DM Mono', monospace; font-size: 0.62rem; color: #5a5a7a; letter-spacing: 0.1em; text-transform: uppercase; }
+    .header-right { display: flex; align-items: center; gap: 14px; }
+    .back-link { font-family: 'DM Mono', monospace; font-size: 0.68rem; color: #5a5a7a; text-decoration: none; letter-spacing: 0.06em; transition: color 0.15s; }
+    .back-link:hover { color: var(--paper); }
+
+    main { flex: 1; display: flex; flex-direction: column; max-width: 860px; width: 100%; margin: 0 auto; padding: 28px 24px 60px; gap: 20px; }
+    .intro { font-size: 0.92rem; color: var(--muted); line-height: 1.7; max-width: 680px; }
+
+    /* Panels */
+    .panel { background: var(--white); border: 1px solid var(--border); border-radius: 4px; overflow: hidden; }
+    .panel-header { background: var(--cream); border-bottom: 1px solid var(--border); padding: 11px 20px; display: flex; align-items: center; gap: 10px; cursor: pointer; user-select: none; }
+    .panel-header:hover { background: #e4dfd2; }
+    .panel-header h2 { font-size: 0.88rem; font-weight: 600; flex: 1; }
+    .step-badge { font-family: 'DM Mono', monospace; font-size: 0.62rem; background: var(--ink); color: var(--paper); padding: 2px 8px; border-radius: 2px; letter-spacing: 0.06em; flex-shrink: 0; }
+    .chevron { font-size: 0.80rem; color: var(--muted); margin-left: auto; transition: transform 0.2s; flex-shrink: 0; line-height: 1; }
+
+    /* Collapsed sub-links shown when results panel is collapsed */
+    .collapse-nav { display: none; padding: 6px 20px 10px; gap: 6px; flex-wrap: wrap; }
+    .collapse-nav-link { font-family: 'DM Mono', monospace; font-size: 0.68rem; color: var(--a); background: var(--a-light); border: 1px solid var(--a-border); border-radius: 3px; padding: 3px 10px; cursor: pointer; text-decoration: none; transition: opacity 0.15s; }
+    .collapse-nav-link:hover { opacity: 0.75; }
+
+    .panel-body { padding: 20px; display: flex; flex-direction: column; gap: 20px; }
+
+    /* Inputs */
+    .inputs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+    @media (max-width: 600px) { .inputs-grid { grid-template-columns: 1fr; } }
+    .character-column { display: flex; flex-direction: column; gap: 16px; }
+    .character-label { font-family: 'DM Mono', monospace; font-size: 0.72rem; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; padding: 6px 12px; border-radius: 3px; display: inline-block; margin-bottom: 2px; }
+    .a-label { background: var(--a-light); color: var(--a); }
+    .b-label { background: var(--b-light); color: var(--b); }
+    .field { display: flex; flex-direction: column; gap: 4px; }
+    .field label { font-family: 'DM Mono', monospace; font-size: 0.68rem; color: var(--muted); letter-spacing: 0.04em; }
+    .field-note { font-size: 0.70rem; color: var(--muted); font-style: italic; }
+    .slider-row { display: flex; align-items: center; gap: 10px; }
+    input[type="range"] { flex: 1; height: 4px; accent-color: var(--ink); cursor: pointer; }
+    .num-edit { font-family: 'DM Mono', monospace; font-size: 0.78rem; width: 86px; padding: 5px 8px; border: 1px solid var(--border); border-radius: 3px; background: var(--paper); color: var(--ink); outline: none; text-align: right; transition: border-color 0.15s; }
+    .num-edit:focus { border-color: var(--ink); }
+    .shared-section { border-top: 1px solid var(--border); padding-top: 14px; display: flex; flex-direction: column; gap: 12px; }
+    .shared-section-label { font-family: 'DM Mono', monospace; font-size: 0.66rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+    .b-section-label { color: var(--b); }
+    .shared-inputs { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; }
+
+    /* Buttons */
+    button { font-family: 'Lora', serif; font-size: 0.85rem; padding: 10px 18px; border: none; border-radius: 3px; cursor: pointer; transition: opacity 0.15s, transform 0.1s; white-space: nowrap; }
+    button:active { transform: scale(0.98); }
+    .btn-accent { background: var(--accent); color: white; }
+    .btn-accent:hover { opacity: 0.85; }
+    .btn-ghost { background: transparent; border: 1px solid var(--border); color: var(--muted); }
+    .btn-ghost:hover { border-color: var(--ink); color: var(--ink); }
+    .button-row { display: flex; gap: 10px; }
+
+    /* Tabs */
+    .tabs { display: flex; border-bottom: 2px solid var(--border); background: var(--cream); }
+    .tab-btn { font-family: 'DM Mono', monospace; font-size: 0.68rem; letter-spacing: 0.06em; padding: 10px 16px; border: none; border-bottom: 3px solid transparent; background: transparent; color: var(--muted); cursor: pointer; transition: color 0.15s, border-color 0.15s; margin-bottom: -2px; text-transform: uppercase; }
+    .tab-btn:hover { color: var(--ink); }
+    .tab-btn.active { color: var(--ink); border-bottom-color: var(--accent); font-weight: 500; }
+    .tab-pane { display: none; }
+    .tab-pane.active { display: block; }
+
+    /* Summary cards */
+    .summary-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    @media (max-width: 560px) { .summary-cards { grid-template-columns: 1fr; } }
+    .summary-card { border-radius: 4px; padding: 20px; border: 1px solid var(--border); }
+    .a-card { background: var(--a-light); border-color: var(--a-border); }
+    .b-card { background: var(--b-light); border-color: var(--b-border); }
+    .card-name { font-family: 'DM Mono', monospace; font-size: 0.68rem; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 14px; font-weight: 500; }
+    .a-card .card-name { color: var(--a); }
+    .b-card .card-name { color: var(--b); }
+    .card-divider { border: none; border-top: 1px solid var(--border); margin: 10px 0; }
+    .card-section-label { font-family: 'DM Mono', monospace; font-size: 0.60rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; margin-top: 4px; }
+    .card-stat { margin-bottom: 10px; }
+    .card-stat:last-child { margin-bottom: 0; }
+    .card-stat-label { font-family: 'DM Mono', monospace; font-size: 0.65rem; color: var(--muted); letter-spacing: 0.04em; margin-bottom: 2px; }
+    .card-stat-value { font-size: 1.0rem; font-weight: 600; }
+    .card-stat-value.big { font-size: 1.3rem; }
+    .a-card .big { color: var(--a); }
+    .b-card .big { color: var(--b); }
+
+    /* Accelerated / SS blocks */
+    .accel-block { background: rgba(26,74,107,0.08); border-radius: 3px; padding: 10px 12px; margin-bottom: 10px; border-left: 3px solid var(--a); }
+    .accel-block .card-stat-label { color: var(--a); }
+    .accel-note { font-size: 0.80rem; color: var(--muted); line-height: 1.65; padding: 14px 20px; background: var(--cream); border-bottom: 1px solid var(--border); font-style: italic; }
+    .ss-block { background: rgba(45,90,61,0.07); border-radius: 3px; padding: 10px 12px; margin-bottom: 10px; border-left: 3px solid var(--green); }
+    .ss-block .card-stat-label { color: var(--green); }
+    .ss-total { font-size: 1.05rem; font-weight: 600; color: var(--ink); }
+
+    /* Comparison table */
+    .table-controls { display: flex; align-items: center; padding: 10px 20px; background: var(--cream); border-bottom: 1px solid var(--border); border-top: 1px solid var(--border); }
+    .table-controls label { font-family: 'DM Mono', monospace; font-size: 0.72rem; color: var(--muted); display: flex; align-items: center; gap: 7px; cursor: pointer; }
+    .table-controls input[type="checkbox"] { accent-color: var(--accent); width: 14px; height: 14px; cursor: pointer; }
+    .comparison-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+    .comparison-table th { font-family: 'DM Mono', monospace; font-size: 0.65rem; letter-spacing: 0.06em; text-transform: uppercase; padding: 8px 14px; text-align: left; border-bottom: 2px solid var(--border); background: var(--cream); }
+    .comparison-table th.a-col { color: var(--a); }
+    .comparison-table th.b-col { color: var(--b); }
+    .comparison-table td { padding: 9px 14px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+    .comparison-table tr:last-child td { border-bottom: none; }
+    .comparison-table tr:hover td { background: #faf8f4; }
+    .comparison-table td:first-child { font-size: 0.80rem; color: var(--muted); }
+    .comparison-table td.num { font-family: 'DM Mono', monospace; font-size: 0.80rem; }
+    .section-row td { background: var(--cream); font-family: 'DM Mono', monospace; font-size: 0.64rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); padding: 6px 14px; border-bottom: 1px solid var(--border); }
+    .section-row:hover td { background: var(--cream); }
+    .highlight-on .a-win { background: #e8f2fa; }
+    .highlight-on .b-win { background: #faf0e0; }
+    .win-badge { font-family: 'DM Mono', monospace; font-size: 0.58rem; padding: 1px 5px; border-radius: 2px; margin-left: 6px; vertical-align: middle; display: none; }
+    .highlight-on .win-badge { display: inline; }
+    .a-win .win-badge { background: var(--a); color: white; }
+    .b-win .win-badge { background: var(--b); color: white; }
+
+    /* Payout chart */
+    .chart-wrap { position: relative; width: 100%; height: 320px; }
+    .chart-wrap canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+    .chart-legend { display: flex; gap: 20px; padding: 12px 20px; flex-wrap: wrap; border-top: 1px solid var(--border); }
+    .legend-item { display: flex; align-items: center; gap: 7px; font-family: 'DM Mono', monospace; font-size: 0.68rem; color: var(--muted); }
+    .legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+    .chart-note { font-size: 0.76rem; color: var(--muted); line-height: 1.6; font-style: italic; padding: 12px 20px; border-top: 1px solid var(--border); }
+
+    /* Misc */
+    .assumptions-note { font-size: 0.76rem; color: var(--muted); line-height: 1.6; font-style: italic; padding-top: 12px; border-top: 1px solid var(--border); }
+    .disclaimer { font-family: 'DM Mono', monospace; font-size: 0.66rem; color: var(--muted); line-height: 1.6; padding: 14px 20px; background: var(--cream); border-top: 1px solid var(--border); }
+    .disclaimer a { color: var(--muted); }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="header-left">
+    <h1>Paths to 55</h1>
+    <div class="subtitle">Educator Finance Tools · v1.09</div>
+  </div>
+  <div class="header-right">
+    <a class="back-link" href="index.html">← All Tools</a>
+  </div>
+</header>
+
+<main>
+  <p class="intro">Compare the financial trajectory of a Wisconsin teacher (WRS pension) against a private-sector peer (401k) toward the same goal: retirement at 55. Adjust the sliders to explore different assumptions — click any value to type a specific number.</p>
+
+  <!-- INPUTS PANEL -->
+  <div class="panel" id="panel-inputs">
+    <div class="panel-header" onclick="togglePanel('inputs')">
+      <span class="step-badge">INPUTS</span>
+      <h2>Assumptions</h2>
+      <span class="chevron" id="chevron-inputs">▾</span>
+    </div>
+    <div id="body-inputs">
+      <div class="panel-body">
+        <div class="inputs-grid">
+          <!-- Person A -->
+          <div class="character-column">
+            <span class="character-label a-label">Person A — WRS Pension</span>
+            <div class="field">
+              <label>Starting Salary</label>
+              <div class="slider-row">
+                <input type="range" id="a-salary-range" min="30000" max="100000" step="1000" value="45000" oninput="syncSlider('a-salary')">
+                <input type="number" class="num-edit" id="a-salary-num" value="45000" oninput="syncNum('a-salary')">
+              </div>
+              <span class="field-note" id="a-salary-display">$45,000</span>
+            </div>
+            <div class="field">
+              <label>Annual Raise</label>
+              <div class="slider-row">
+                <input type="range" id="a-raise-range" min="0.5" max="6" step="0.1" value="2.5" oninput="syncSlider('a-raise')">
+                <input type="number" class="num-edit" id="a-raise-num" value="2.5" oninput="syncNum('a-raise')">
+              </div>
+              <span class="field-note" id="a-raise-display">2.5% — Wisconsin Act 10 cap is 2.63%; many districts average higher with steps.</span>
+            </div>
+            <div class="field">
+              <label>Employee WRS Contribution</label>
+              <div class="slider-row">
+                <input type="range" id="a-ee-range" min="1" max="15" step="0.1" value="7.2" oninput="syncSlider('a-ee')">
+                <input type="number" class="num-edit" id="a-ee-num" value="7.2" oninput="syncNum('a-ee')">
+              </div>
+              <span class="field-note" id="a-ee-display">7.2% — 2026 rate</span>
+            </div>
+            <div class="field">
+              <label>Employer WRS Contribution</label>
+              <div class="slider-row">
+                <input type="range" id="a-er-range" min="1" max="15" step="0.1" value="7.2" oninput="syncSlider('a-er')">
+                <input type="number" class="num-edit" id="a-er-num" value="7.2" oninput="syncNum('a-er')">
+              </div>
+              <span class="field-note" id="a-er-display">7.2% — 2026 rate; 2027 rate will be 7.25%</span>
+            </div>
+            <div class="field">
+              <label>Estimated Social Security at 62 (monthly)</label>
+              <div class="slider-row">
+                <input type="range" id="a-ss-range" min="0" max="3000" step="50" value="1200" oninput="syncSlider('a-ss')">
+                <input type="number" class="num-edit" id="a-ss-num" value="1200" oninput="syncNum('a-ss')">
+              </div>
+              <span class="field-note" id="a-ss-display">$1,200/mo</span>
+            </div>
+          </div>
+
+          <!-- Person B -->
+          <div class="character-column">
+            <span class="character-label b-label">Person B — Private Sector 401k</span>
+            <div class="field">
+              <label>Starting Salary</label>
+              <div class="slider-row">
+                <input type="range" id="b-salary-range" min="30000" max="120000" step="1000" value="55000" oninput="syncSlider('b-salary')">
+                <input type="number" class="num-edit" id="b-salary-num" value="55000" oninput="syncNum('b-salary')">
+              </div>
+              <span class="field-note" id="b-salary-display">$55,000</span>
+            </div>
+            <div class="field">
+              <label>Annual Raise</label>
+              <div class="slider-row">
+                <input type="range" id="b-raise-range" min="0.5" max="8" step="0.1" value="3.5" oninput="syncSlider('b-raise')">
+                <input type="number" class="num-edit" id="b-raise-num" value="3.5" oninput="syncNum('b-raise')">
+              </div>
+              <span class="field-note" id="b-raise-display">3.5% — typical corporate trainer range: 3.2–3.6%</span>
+            </div>
+            <div class="field">
+              <label>Employee 401k Contribution</label>
+              <div class="slider-row">
+                <input type="range" id="b-ee-range" min="1" max="20" step="0.5" value="4" oninput="syncSlider('b-ee')">
+                <input type="number" class="num-edit" id="b-ee-num" value="4" oninput="syncNum('b-ee')">
+              </div>
+              <span class="field-note" id="b-ee-display">4.0% — enough to capture the full employer match</span>
+            </div>
+            <div class="field">
+              <label>Employer Match</label>
+              <div class="slider-row">
+                <input type="range" id="b-er-range" min="0" max="15" step="0.5" value="4" oninput="syncSlider('b-er')">
+                <input type="number" class="num-edit" id="b-er-num" value="4" oninput="syncNum('b-er')">
+              </div>
+              <span class="field-note" id="b-er-display">4.0%</span>
+            </div>
+            <div class="field">
+              <label>Estimated Social Security at 62 (monthly)</label>
+              <div class="slider-row">
+                <input type="range" id="b-ss-range" min="0" max="3000" step="50" value="1800" oninput="syncSlider('b-ss')">
+                <input type="number" class="num-edit" id="b-ss-num" value="1800" oninput="syncNum('b-ss')">
+              </div>
+              <span class="field-note" id="b-ss-display">$1,800/mo — higher lifetime earnings produce a larger SS benefit</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Shared: Both -->
+        <div class="shared-section">
+          <div class="shared-section-label">Applies to both</div>
+          <div class="shared-inputs">
+            <div class="field">
+              <label>Starting Age</label>
+              <div class="slider-row">
+                <input type="range" id="start-age-range" min="18" max="40" step="1" value="23" oninput="syncSlider('start-age')">
+                <input type="number" class="num-edit" id="start-age-num" value="23" oninput="syncNum('start-age')">
+              </div>
+              <span class="field-note" id="start-age-display">Age 23</span>
+            </div>
+            <div class="field">
+              <label>Retirement Age</label>
+              <div class="slider-row">
+                <input type="range" id="retire-age-range" min="50" max="70" step="1" value="55" oninput="syncSlider('retire-age')">
+                <input type="number" class="num-edit" id="retire-age-num" value="55" oninput="syncNum('retire-age')">
+              </div>
+              <span class="field-note" id="retire-age-display">Age 55</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Shared: Person B only -->
+        <div class="shared-section">
+          <div class="shared-section-label b-section-label">Person B only — 401k assumptions</div>
+          <div class="shared-inputs">
+            <div class="field">
+              <label>Investment Return</label>
+              <div class="slider-row">
+                <input type="range" id="return-range" min="1" max="15" step="0.1" value="7.5" oninput="syncSlider('return')">
+                <input type="number" class="num-edit" id="return-num" value="7.5" oninput="syncNum('return')">
+              </div>
+              <span class="field-note" id="return-display">7.5% — conservative long-term assumption for a diversified index fund</span>
+            </div>
+            <div class="field">
+              <label>Withdrawal Rate</label>
+              <div class="slider-row">
+                <input type="range" id="withdrawal-range" min="1" max="10" step="0.1" value="4.7" oninput="syncSlider('withdrawal')">
+                <input type="number" class="num-edit" id="withdrawal-num" value="4.7" oninput="syncNum('withdrawal')">
+              </div>
+              <span class="field-note" id="withdrawal-display">4.7% — applied to Person B's 401k balance to estimate monthly income</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="button-row">
+          <button class="btn-accent" onclick="calculate()">Calculate</button>
+          <button class="btn-ghost" onclick="resetDefaults()">Reset Defaults</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RESULTS PANEL -->
+  <div class="panel" id="panel-results" style="display:none;">
+    <div class="panel-header" onclick="togglePanel('results')">
+      <span class="step-badge">RESULTS</span>
+      <h2>At Retirement (Age <span id="res-retire-age"></span>)</h2>
+      <span class="chevron" id="chevron-results">▾</span>
+    </div>
+    <!-- Collapsed nav: shown only when results is collapsed -->
+    <div class="collapse-nav" id="collapse-nav-results">
+      <span class="collapse-nav-link" onclick="expandAndTab('base')">Base Comparison</span>
+      <span class="collapse-nav-link" onclick="expandAndTab('ss')">Accelerated + SS</span>
+      <span class="collapse-nav-link" onclick="expandAndTab('payout')">Payout Timeline</span>
+    </div>
+    <div id="body-results">
+      <!-- Tabs -->
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(event,'base')">Base Comparison</button>
+        <button class="tab-btn" onclick="switchTab(event,'ss')">Accelerated + SS</button>
+        <button class="tab-btn" onclick="switchTab(event,'payout')">Payout Timeline</button>
+      </div>
+
+      <!-- Tab 1: Base Comparison -->
+      <div id="tab-base" class="tab-pane active">
+        <div class="panel-body">
+          <div class="summary-cards">
+            <div class="summary-card a-card">
+              <div class="card-name">Person A — WRS Pension</div>
+              <div class="card-section-label">Retirement Income</div>
+              <div class="card-stat">
+                <div class="card-stat-label">Base monthly pension</div>
+                <div class="card-stat-value big" id="a-monthly"></div>
+              </div>
+              <hr class="card-divider">
+              <div class="card-section-label">Salary</div>
+              <div class="card-stat">
+                <div class="card-stat-label">Starting salary</div>
+                <div class="card-stat-value" id="a-start-salary"></div>
+              </div>
+              <div class="card-stat">
+                <div class="card-stat-label">Final salary</div>
+                <div class="card-stat-value" id="a-final-salary"></div>
+              </div>
+              <hr class="card-divider">
+              <div class="card-section-label">Pension Calculation Basis</div>
+              <div class="card-stat">
+                <div class="card-stat-label">Years of service</div>
+                <div class="card-stat-value" id="a-years"></div>
+              </div>
+              <div class="card-stat">
+                <div class="card-stat-label">Final Average Salary (FAS)</div>
+                <div class="card-stat-value" id="a-fas"></div>
+              </div>
+              <hr class="card-divider">
+              <div class="card-section-label">Contributions</div>
+              <div class="card-stat">
+                <div class="card-stat-label">Your contributions (lifetime)</div>
+                <div class="card-stat-value" id="a-ee-contrib"></div>
+              </div>
+              <div class="card-stat">
+                <div class="card-stat-label">Employer contributions (lifetime)</div>
+                <div class="card-stat-value" id="a-er-contrib"></div>
+              </div>
+              <div class="card-stat">
+                <div class="card-stat-label">Total contributions</div>
+                <div class="card-stat-value" id="a-total-contrib"></div>
+              </div>
+            </div>
+
+            <div class="summary-card b-card">
+              <div class="card-name">Person B — Private Sector 401k</div>
+              <div class="card-section-label">Retirement Income</div>
+              <div class="card-stat">
+                <div class="card-stat-label">Monthly drawdown income</div>
+                <div class="card-stat-value big" id="b-monthly"></div>
+              </div>
+              <hr class="card-divider">
+              <div class="card-section-label">Salary</div>
+              <div class="card-stat">
+                <div class="card-stat-label">Starting salary</div>
+                <div class="card-stat-value" id="b-start-salary"></div>
+              </div>
+              <div class="card-stat">
+                <div class="card-stat-label">Final salary</div>
+                <div class="card-stat-value" id="b-final-salary"></div>
+              </div>
+              <hr class="card-divider">
+              <div class="card-section-label">401k Balance</div>
+              <div class="card-stat">
+                <div class="card-stat-label">Balance at retirement</div>
+                <div class="card-stat-value" id="b-balance"></div>
+              </div>
+              <div class="card-stat">
+                <div class="card-stat-label">Income basis</div>
+                <div class="card-stat-value" id="b-income-basis"></div>
+              </div>
+              <hr class="card-divider">
+              <div class="card-section-label">Contributions</div>
+              <div class="card-stat">
+                <div class="card-stat-label">Your contributions (lifetime)</div>
+                <div class="card-stat-value" id="b-ee-contrib"></div>
+              </div>
+              <div class="card-stat">
+                <div class="card-stat-label">Employer contributions (lifetime)</div>
+                <div class="card-stat-value" id="b-er-contrib"></div>
+              </div>
+              <div class="card-stat">
+                <div class="card-stat-label">Total contributions</div>
+                <div class="card-stat-value" id="b-total-contrib"></div>
+              </div>
+            </div>
+          </div>
+          <p class="assumptions-note" id="assumptions-note"></p>
+        </div>
+
+        <!-- Side by Side table -->
+        <div class="table-controls">
+          <label>
+            <input type="checkbox" id="highlight-toggle" onchange="toggleHighlight()">
+            Highlight larger value in each row
+          </label>
+        </div>
+        <div id="table-wrap">
+          <table class="comparison-table">
+            <thead>
+              <tr>
+                <th>Item</th>
+                <th class="a-col">Person A (WRS)</th>
+                <th class="b-col">Person B (401k)</th>
+              </tr>
+            </thead>
+            <tbody id="comparison-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Tab 2: Accelerated + SS -->
+      <div id="tab-ss" class="tab-pane">
+        <div class="accel-note">
+          The WRS accelerated option adds Person A's estimated Social Security amount to their monthly pension from retirement until age 62, then reverts to the base pension at 62 when Social Security begins. It is not more total money — it redistributes income across the retirement period. Neither person can access Social Security before age 62.
+        </div>
+        <div class="panel-body">
+          <div class="summary-cards">
+            <div class="summary-card a-card">
+              <div class="card-name">Person A — WRS Pension</div>
+              <div class="card-section-label">Base Option</div>
+              <div class="card-stat">
+                <div class="card-stat-label">Monthly pension (age <span class="retire-age-label"></span>+)</div>
+                <div class="card-stat-value" id="a-monthly-ss"></div>
+              </div>
+              <hr class="card-divider">
+              <div class="card-section-label">Accelerated Option</div>
+              <div class="accel-block">
+                <div class="card-stat-label">Age <span class="retire-age-label"></span> to 62 — pension + projected SS</div>
+                <div class="card-stat-value" id="a-accel-early"></div>
+              </div>
+              <div class="accel-block">
+                <div class="card-stat-label">Age 62+ — reverts to base pension</div>
+                <div class="card-stat-value" id="a-accel-late"></div>
+              </div>
+              <hr class="card-divider">
+              <div class="card-section-label">Social Security (age 62+)</div>
+              <div class="ss-block">
+                <div class="card-stat-label">Estimated monthly SS at 62</div>
+                <div class="card-stat-value" id="a-ss-display-card"></div>
+              </div>
+              <div class="card-stat">
+                <div class="card-stat-label">Total income at 62+ (base pension + SS)</div>
+                <div class="card-stat-value ss-total" id="a-total-62"></div>
+              </div>
+            </div>
+
+            <div class="summary-card b-card">
+              <div class="card-name">Person B — Private Sector 401k</div>
+              <div class="card-section-label">Drawdown Income</div>
+              <div class="card-stat">
+                <div class="card-stat-label">Monthly drawdown (age <span class="retire-age-label"></span>+)</div>
+                <div class="card-stat-value" id="b-monthly-ss"></div>
+              </div>
+              <div class="card-stat">
+                <div class="card-stat-label" style="font-style:italic;color:var(--muted);font-size:0.72rem;">72(t) SEPP required before age 59½. No equivalent to the accelerated option.</div>
+              </div>
+              <hr class="card-divider">
+              <div class="card-section-label">Social Security (age 62+)</div>
+              <div class="ss-block">
+                <div class="card-stat-label">Estimated monthly SS at 62</div>
+                <div class="card-stat-value" id="b-ss-display-card"></div>
+              </div>
+              <div class="card-stat">
+                <div class="card-stat-label">Total income at 62+ (drawdown + SS)</div>
+                <div class="card-stat-value ss-total" id="b-total-62"></div>
+              </div>
+            </div>
+          </div>
+          <p class="assumptions-note">Social Security estimates are user-supplied. Actual SS benefits depend on your full earnings history. Use <a href="https://www.ssa.gov/myaccount/" target="_blank">ssa.gov/myaccount</a> for a personalized estimate. The WRS accelerated option amounts shown here are approximations — ETF calculates your actual accelerated benefit based on your specific record.</p>
+        </div>
+      </div>
+
+      <!-- Tab 3: Payout Timeline -->
+      <div id="tab-payout" class="tab-pane">
+        <div class="panel-body" style="padding-bottom:0; gap:8px;">
+          <p style="font-size:0.88rem;color:var(--muted);line-height:1.6;">Cumulative income received by age, including Social Security at 62. Person A's pension is guaranteed; Person B's drawdown depends on continued portfolio returns. A crossing point — if one exists — shows where one path pulls ahead of the other.</p>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <label style="font-family:'DM Mono',monospace;font-size:0.70rem;color:var(--muted);display:flex;align-items:center;gap:6px;cursor:pointer;">
+              <input type="checkbox" id="payout-include-ss" checked onchange="drawPayoutChart()" style="accent-color:var(--green);width:13px;height:13px;">
+              Include Social Security at 62
+            </label>
+          </div>
+        </div>
+        <div class="chart-wrap" style="margin:0 20px;">
+          <canvas id="payout-chart"></canvas>
+        </div>
+        <div class="chart-legend">
+          <div class="legend-item"><div class="legend-dot" style="background:var(--a);"></div>Person A — pension (+ SS at 62)</div>
+          <div class="legend-item"><div class="legend-dot" style="background:var(--b);"></div>Person B — 401k drawdown (+ SS at 62)</div>
+          <div class="legend-item"><div class="legend-dot" style="background:var(--accent);border-radius:0;width:18px;height:3px;"></div>Crossing point</div>
+        </div>
+        <div class="chart-note" id="payout-milestones"></div>
+      </div>
+
+    </div><!-- end body-results -->
+
+    <div class="disclaimer">
+      This tool is for educational purposes only. It is not financial advice. WRS pension uses a 1.6% multiplier (general category) and a 3-year final average salary. Person B's 401k requires a <a href="https://fitaxguy.com/retire-on-72t-payments/" target="_blank">72(t) SEPP distribution</a> to access before age 59½. Consult a financial advisor before making retirement decisions. Built by Josh Hertel — <a href="https://personalfinanceforeducators.substack.com" target="_blank">personalfinanceforeducators.substack.com</a>
+    </div>
+  </div>
+
+</main>
+
+<script>
+  // ── Slider / number sync ──────────────────────────────────────────────────
+  const NOTES = {
+    'a-salary':   v => '$' + Number(v).toLocaleString(),
+    'a-raise':    v => v + '% — Wisconsin Act 10 cap is 2.63%; many districts average higher with steps.',
+    'a-ee':       v => v + '% employee contribution',
+    'a-er':       v => v + '% employer contribution',
+    'a-ss':       v => '$' + Number(v).toLocaleString() + '/mo',
+    'b-salary':   v => '$' + Number(v).toLocaleString(),
+    'b-raise':    v => v + '% — typical corporate trainer range: 3.2–3.6%',
+    'b-ee':       v => v + '% employee contribution',
+    'b-er':       v => v + '% employer match',
+    'b-ss':       v => '$' + Number(v).toLocaleString() + '/mo — higher lifetime earnings produce a larger SS benefit',
+    'start-age':  v => 'Age ' + v,
+    'retire-age': v => 'Age ' + v,
+    'return':     v => v + '% — conservative long-term assumption for a diversified index fund',
+    'withdrawal': v => v + "% — applied to Person B's 401k balance to estimate monthly income",
+  };
+
+  function syncSlider(id) {
+    const v = document.getElementById(id + '-range').value;
+    document.getElementById(id + '-num').value = v;
+    const el = document.getElementById(id + '-display');
+    if (el && NOTES[id]) el.textContent = NOTES[id](v);
+  }
+  function syncNum(id) {
+    const num   = document.getElementById(id + '-num');
+    const range = document.getElementById(id + '-range');
+    const v = parseFloat(num.value);
+    if (!isNaN(v)) {
+      range.value = Math.min(Math.max(v, +range.min), +range.max);
+      const el = document.getElementById(id + '-display');
+      if (el && NOTES[id]) el.textContent = NOTES[id](num.value);
+    }
+  }
+  function getVal(id) { return parseFloat(document.getElementById(id + '-num').value); }
+  const fmt    = n => '$' + Math.round(n).toLocaleString();
+  const fmtPct = n => parseFloat(n).toFixed(1) + '%';
+
+  // ── Collapse / expand ─────────────────────────────────────────────────────
+  const _collapsed = { inputs: false, results: false };
+
+  function togglePanel(id) {
+    _collapsed[id] = !_collapsed[id];
+    const body    = document.getElementById('body-' + id);
+    const chevron = document.getElementById('chevron-' + id);
+    const nav     = document.getElementById('collapse-nav-' + id);
+
+    body.style.display    = _collapsed[id] ? 'none' : '';
+    chevron.style.transform = _collapsed[id] ? 'rotate(-90deg)' : '';
+
+    // also hide disclaimer when results collapsed
+    if (id === 'results') {
+      const disc = document.querySelector('#panel-results .disclaimer');
+      if (disc) disc.style.display = _collapsed[id] ? 'none' : '';
+    }
+    if (nav) nav.style.display = _collapsed[id] ? 'flex' : 'none';
+  }
+
+  function expandAndTab(tabName) {
+    if (_collapsed.results) togglePanel('results');
+    switchTabDirect(tabName);
+    document.getElementById('panel-results').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  // ── Tab switching ─────────────────────────────────────────────────────────
+  function switchTab(e, name) {
+    e.stopPropagation(); // prevent triggering panel collapse
+    switchTabDirect(name);
+  }
+  function switchTabDirect(name) {
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.remove('active'));
+    document.getElementById('tab-' + name).classList.add('active');
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      if (btn.getAttribute('onclick') && btn.getAttribute('onclick').includes("'" + name + "'")) {
+        btn.classList.add('active');
+      }
+    });
+    if (name === 'payout') {
+      requestAnimationFrame(() => requestAnimationFrame(() => drawPayoutChart()));
+    }
+  }
+
+  // ── Highlight toggle ──────────────────────────────────────────────────────
+  function toggleHighlight() {
+    const on = document.getElementById('highlight-toggle').checked;
+    document.getElementById('table-wrap').classList.toggle('highlight-on', on);
+  }
+
+  // ── Results data ──────────────────────────────────────────────────────────
+  let _r = {};
+
+  // ── Calculate ─────────────────────────────────────────────────────────────
+  function calculate() {
+    const aSalary   = getVal('a-salary');
+    const aRaise    = getVal('a-raise')    / 100;
+    const aEE       = getVal('a-ee')       / 100;
+    const aER       = getVal('a-er')       / 100;
+    const aSS       = getVal('a-ss');
+    const bSalary   = getVal('b-salary');
+    const bRaise    = getVal('b-raise')    / 100;
+    const bEE       = getVal('b-ee')       / 100;
+    const bER       = getVal('b-er')       / 100;
+    const bSS       = getVal('b-ss');
+    const startAge  = getVal('start-age');
+    const retireAge = getVal('retire-age');
+    const ret       = getVal('return')     / 100;
+    const wdr       = getVal('withdrawal') / 100;
+    const WRS_MULT  = 0.016;
+
+    const years = retireAge - startAge;
+    if (years <= 0) { alert('Retirement age must be greater than starting age.'); return; }
+
+    let aBal = 0, bBal = 0;
+    let aSal = aSalary, bSal = bSalary;
+    let aTotalEE = 0, aTotalER = 0, bTotalEE = 0, bTotalER = 0;
+
+    for (let yr = 1; yr <= years; yr++) {
+      aTotalEE += aSal * aEE; aTotalER += aSal * aER;
+      bTotalEE += bSal * bEE; bTotalER += bSal * bER;
+      aBal = (aBal + aSal * (aEE + aER)) * (1 + ret);
+      bBal = (bBal + bSal * (bEE + bER)) * (1 + ret);
+      aSal *= (1 + aRaise); bSal *= (1 + bRaise);
+    }
+
+    const aFinalSal = aSalary * Math.pow(1 + aRaise, years - 1);
+    const bFinalSal = bSalary * Math.pow(1 + bRaise, years - 1);
+    const fas = (
+      aSalary * Math.pow(1 + aRaise, years - 3) +
+      aSalary * Math.pow(1 + aRaise, years - 2) +
+      aSalary * Math.pow(1 + aRaise, years - 1)
+    ) / 3;
+
+    const aPension   = fas * years * WRS_MULT / 12;
+    const bMonthly   = bBal * wdr / 12;
+    const aAccelEarly = aPension + aSS;
+    const aAccelLate  = aPension;
+
+    _r = { aSalary, aRaise, aEE, aER, aSS, bSalary, bRaise, bEE, bER, bSS,
+            startAge, retireAge, ret, wdr, years,
+            aFinalSal, bFinalSal, fas, aPension, bMonthly, bBal, aBal,
+            aTotalEE, aTotalER, bTotalEE, bTotalER,
+            aAccelEarly, aAccelLate };
+
+    // Retire age labels
+    document.getElementById('res-retire-age').textContent = retireAge;
+    document.querySelectorAll('.retire-age-label').forEach(el => el.textContent = retireAge);
+
+    // Tab 1 cards
+    document.getElementById('a-monthly').textContent       = fmt(aPension) + '/mo';
+    document.getElementById('a-start-salary').textContent  = fmt(aSalary);
+    document.getElementById('a-final-salary').textContent  = fmt(aFinalSal);
+    document.getElementById('a-years').textContent         = years + ' years';
+    document.getElementById('a-fas').textContent           = fmt(fas);
+    document.getElementById('a-ee-contrib').textContent    = fmt(aTotalEE);
+    document.getElementById('a-er-contrib').textContent    = fmt(aTotalER);
+    document.getElementById('a-total-contrib').textContent = fmt(aTotalEE + aTotalER);
+
+    document.getElementById('b-monthly').textContent       = fmt(bMonthly) + '/mo';
+    document.getElementById('b-start-salary').textContent  = fmt(bSalary);
+    document.getElementById('b-final-salary').textContent  = fmt(bFinalSal);
+    document.getElementById('b-balance').textContent       = fmt(bBal);
+    document.getElementById('b-income-basis').textContent  = fmtPct(wdr * 100) + ' annual withdrawal';
+    document.getElementById('b-ee-contrib').textContent    = fmt(bTotalEE);
+    document.getElementById('b-er-contrib').textContent    = fmt(bTotalER);
+    document.getElementById('b-total-contrib').textContent = fmt(bTotalEE + bTotalER);
+
+    document.getElementById('assumptions-note').textContent =
+      `Person A's WRS equivalent balance (${fmt(aBal)}) shows the hypothetical compounded value of contributions at ${fmtPct(ret*100)} for comparison only. Person A receives a defined monthly pension, not a lump sum.`;
+
+    // Tab 2 cards
+    document.getElementById('a-monthly-ss').textContent      = fmt(aPension) + '/mo';
+    document.getElementById('a-accel-early').textContent     = fmt(aAccelEarly) + '/mo';
+    document.getElementById('a-accel-late').textContent      = fmt(aAccelLate) + '/mo';
+    document.getElementById('a-ss-display-card').textContent = fmt(aSS) + '/mo';
+    document.getElementById('a-total-62').textContent        = fmt(aPension + aSS) + '/mo';
+    document.getElementById('b-monthly-ss').textContent      = fmt(bMonthly) + '/mo';
+    document.getElementById('b-ss-display-card').textContent = fmt(bSS) + '/mo';
+    document.getElementById('b-total-62').textContent        = fmt(bMonthly + bSS) + '/mo';
+
+    // Comparison table
+    const rows = [
+      { section: 'Salary' },
+      { label: 'Starting salary',            aVal: fmt(aSalary),          bVal: fmt(bSalary),          aNum: aSalary,    bNum: bSalary },
+      { label: 'Annual raise assumption',    aVal: fmtPct(aRaise*100),    bVal: fmtPct(bRaise*100),    aNum: aRaise,     bNum: bRaise },
+      { label: 'Final salary',              aVal: fmt(aFinalSal),        bVal: fmt(bFinalSal),        aNum: aFinalSal,  bNum: bFinalSal },
+      { section: 'Contributions' },
+      { label: 'Combined contribution rate', aVal: fmtPct((aEE+aER)*100), bVal: fmtPct((bEE+bER)*100), aNum: aEE+aER,    bNum: bEE+bER },
+      { label: 'Total contributions',        aVal: fmt(aTotalEE+aTotalER), bVal: fmt(bTotalEE+bTotalER), aNum: aTotalEE+aTotalER, bNum: bTotalEE+bTotalER },
+      { section: 'At Retirement' },
+      { label: 'Person A: Final Average Salary', aVal: fmt(fas), bVal: '—', aNum: null, bNum: null },
+      { label: 'Person B: 401k balance',         aVal: '—', bVal: fmt(bBal), aNum: null, bNum: null },
+      { label: `Base monthly income at ${retireAge}`, aVal: fmt(aPension)+'/mo', bVal: fmt(bMonthly)+'/mo', aNum: aPension, bNum: bMonthly },
+      { label: 'Income type',               aVal: 'Guaranteed annuity', bVal: 'Market-based drawdown', aNum: null, bNum: null },
+      { label: 'Early access at retirement', aVal: 'Clean — no friction', bVal: '72(t) SEPP required', aNum: null, bNum: null },
+    ];
+
+    document.getElementById('comparison-tbody').innerHTML = rows.map(r => {
+      if (r.section) return `<tr class="section-row"><td colspan="3">${r.section}</td></tr>`;
+      let aC = 'num', bC = 'num', aB = '', bB = '';
+      if (r.aNum !== null) {
+        if (r.aNum > r.bNum)      { aC = 'num a-win'; aB = '<span class="win-badge">▲</span>'; }
+        else if (r.bNum > r.aNum) { bC = 'num b-win'; bB = '<span class="win-badge">▲</span>'; }
+      }
+      return `<tr><td>${r.label}</td><td class="${aC}">${r.aVal}${aB}</td><td class="${bC}">${r.bVal}${bB}</td></tr>`;
+    }).join('');
+
+    toggleHighlight();
+
+    // Show results panel
+    document.getElementById('panel-results').style.display = '';
+    if (_collapsed.results) togglePanel('results'); // re-expand if was collapsed
+
+    // Switch to base tab
+    switchTabDirect('base');
+
+    document.getElementById('panel-results').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  // ── Payout chart ──────────────────────────────────────────────────────────
+  function drawPayoutChart() {
+    const canvas = document.getElementById('payout-chart');
+    if (!canvas) return;
+    const r = _r;
+    if (!r.aPension) return;
+
+    const includeSS = document.getElementById('payout-include-ss').checked;
+    const maxYears  = 40;
+    const SS_AGE    = 62;
+
+    // Build year-by-year cumulative income including optional SS at 62
+    const ages = [], aCum = [], bCum = [];
+    let aTot = 0, bTot = 0;
+
+    for (let yr = 0; yr <= maxYears; yr++) {
+      const age = r.retireAge + yr;
+      const hasSSThisYear = includeSS && age >= SS_AGE;
+      const aAnnual = (r.aPension + (hasSSThisYear ? r.aSS : 0)) * 12;
+      const bAnnual = (r.bMonthly + (hasSSThisYear ? r.bSS : 0)) * 12;
+      ages.push(age);
+      aCum.push(aTot);
+      bCum.push(bTot);
+      aTot += aAnnual;
+      bTot += bAnnual;
+    }
+    // push final year totals
+    aCum.push(aTot); bCum.push(bTot); ages.push(r.retireAge + maxYears + 1);
+    aCum.shift(); bCum.shift(); ages.shift(); // align: value at end of each year
+
+    // Find crossing points (where cumulative totals switch order)
+    const crossings = [];
+    for (let i = 1; i < aCum.length; i++) {
+      const prevDiff = aCum[i-1] - bCum[i-1];
+      const currDiff = aCum[i]   - bCum[i];
+      if (prevDiff * currDiff < 0) {
+        // interpolate exact crossing age
+        const frac = Math.abs(prevDiff) / (Math.abs(prevDiff) + Math.abs(currDiff));
+        const crossAge = ages[i-1] + frac;
+        const crossVal = aCum[i-1] + frac * (aCum[i] - aCum[i-1]);
+        crossings.push({ age: crossAge, val: crossVal, aWinsAfter: currDiff > 0 });
+      }
+    }
+
+    // Draw
+    const dpr = window.devicePixelRatio || 1;
+    const W   = canvas.parentElement.clientWidth;
+    const H   = 320;
+    canvas.width  = W * dpr;
+    canvas.height = H * dpr;
+    canvas.style.width  = W + 'px';
+    canvas.style.height = H + 'px';
+    const ctx = canvas.getContext('2d');
+    ctx.scale(dpr, dpr);
+
+    const maxV = Math.max(...aCum, ...bCum) * 1.05;
+    const pad  = { top: 24, right: 24, bottom: 36, left: 80 };
+    const cW   = W - pad.left - pad.right;
+    const cH   = H - pad.top  - pad.bottom;
+
+    ctx.clearRect(0, 0, W, H);
+
+    // Grid
+    ctx.strokeStyle = '#d4cebe'; ctx.lineWidth = 1;
+    ctx.font = `500 10px 'DM Mono', monospace`;
+    ctx.fillStyle = '#7a7262'; ctx.textAlign = 'right';
+    for (let g = 0; g <= 5; g++) {
+      const y   = pad.top + cH - (g / 5) * cH;
+      const val = (g / 5) * maxV;
+      ctx.beginPath(); ctx.moveTo(pad.left, y); ctx.lineTo(pad.left + cW, y); ctx.stroke();
+      ctx.fillText(val >= 1e6 ? '$'+(val/1e6).toFixed(1)+'M' : '$'+Math.round(val/1000)+'k', pad.left - 8, y + 4);
+    }
+
+    // SS age reference line
+    if (includeSS && SS_AGE >= r.retireAge && SS_AGE <= r.retireAge + maxYears) {
+      const ssX = pad.left + ((SS_AGE - r.retireAge) / maxYears) * cW;
+      ctx.strokeStyle = '#b0c8b0'; ctx.lineWidth = 1; ctx.setLineDash([4, 3]);
+      ctx.beginPath(); ctx.moveTo(ssX, pad.top); ctx.lineTo(ssX, pad.top + cH); ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle = '#7a9a7a'; ctx.textAlign = 'center'; ctx.font = `500 9px 'DM Mono', monospace`;
+      ctx.fillText('SS at 62', ssX, pad.top - 6);
+    }
+
+    const toX = age => pad.left + ((age - r.retireAge) / maxYears) * cW;
+    const toY = val => pad.top + cH - (val / maxV) * cH;
+
+    function drawLine(data, color) {
+      ctx.strokeStyle = color; ctx.lineWidth = 2.5; ctx.lineJoin = 'round'; ctx.setLineDash([]);
+      ctx.beginPath();
+      data.forEach((v, i) => {
+        i === 0 ? ctx.moveTo(toX(ages[i]), toY(v)) : ctx.lineTo(toX(ages[i]), toY(v));
+      });
+      ctx.stroke();
+    }
+
+    drawLine(bCum, '#4a3a1a');
+    drawLine(aCum, '#1a4a6b');
+
+    // Crossing point markers
+    crossings.forEach(c => {
+      const cx = toX(c.age);
+      const cy = toY(c.val);
+      // vertical dashed line at crossing
+      ctx.strokeStyle = '#8b1a1a'; ctx.lineWidth = 1.5; ctx.setLineDash([3, 3]);
+      ctx.beginPath(); ctx.moveTo(cx, pad.top); ctx.lineTo(cx, pad.top + cH); ctx.stroke();
+      ctx.setLineDash([]);
+      // dot
+      ctx.fillStyle = '#8b1a1a';
+      ctx.beginPath(); ctx.arc(cx, cy, 5, 0, Math.PI * 2); ctx.fill();
+      // label
+      ctx.font = `500 9px 'DM Mono', monospace`;
+      ctx.fillStyle = '#8b1a1a'; ctx.textAlign = cx > W * 0.7 ? 'right' : 'left';
+      ctx.fillText(`Age ${c.age.toFixed(1)}`, cx + (cx > W * 0.7 ? -8 : 8), cy - 8);
+    });
+
+    // X axis labels
+    ctx.setLineDash([]); ctx.fillStyle = '#7a7262'; ctx.textAlign = 'center';
+    ctx.font = `500 10px 'DM Mono', monospace`;
+    ages.forEach((age, i) => {
+      if (age % 5 === 0) {
+        ctx.fillText(age, toX(age), H - pad.bottom + 18);
+      }
+    });
+    ctx.fillText('Age', W / 2, H - 4);
+
+    // Notes below chart
+    const noteLines = [];
+
+    if (crossings.length === 0) {
+      const aLeads = aCum[aCum.length-1] > bCum[bCum.length-1];
+      noteLines.push(`No crossing point in this ${maxYears}-year window. ${aLeads ? 'Person A' : 'Person B'} receives more total income throughout.`);
+    } else {
+      crossings.forEach(c => {
+        noteLines.push(`Crossing at age ${c.age.toFixed(1)}: ${c.aWinsAfter ? 'Person A pulls ahead' : 'Person B pulls ahead'} of the other from this point forward (cumulative total at crossing: ${fmt(c.val)}).`);
+      });
+    }
+
+    // Milestone table
+    noteLines.push('');
+    noteLines.push('<strong>Cumulative totals by age</strong>');
+    [60, 65, 70, 75, 80, 85, 90].forEach(age => {
+      const idx = age - r.retireAge;
+      if (idx < 0 || idx >= aCum.length) return;
+      noteLines.push(`Age ${age}: Person A ${fmt(aCum[idx])} | Person B ${fmt(bCum[idx])}`);
+    });
+
+    document.getElementById('payout-milestones').innerHTML = noteLines.join('<br>');
+  }
+
+  // ── Reset ─────────────────────────────────────────────────────────────────
+  function resetDefaults() {
+    const D = {
+      'a-salary':45000,'a-raise':2.5,'a-ee':7.2,'a-er':7.2,'a-ss':1200,
+      'b-salary':55000,'b-raise':3.5,'b-ee':4,'b-er':4,'b-ss':1800,
+      'start-age':23,'retire-age':55,'return':7.5,'withdrawal':4.7
+    };
+    Object.entries(D).forEach(([id, val]) => {
+      document.getElementById(id+'-range').value = val;
+      document.getElementById(id+'-num').value   = val;
+      const el = document.getElementById(id+'-display');
+      if (el && NOTES[id]) el.textContent = NOTES[id](val);
+    });
+    document.getElementById('panel-results').style.display = 'none';
+    document.getElementById('highlight-toggle').checked = false;
+    if (_collapsed.inputs) togglePanel('inputs');
+    if (_collapsed.results) { _collapsed.results = true; togglePanel('results'); }
+  }
+
+  document.addEventListener('keydown', e => { if (e.key === 'Enter') calculate(); });
+</script>
+</body>
+</html>
