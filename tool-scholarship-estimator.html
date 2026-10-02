@@ -46,10 +46,54 @@
     }
     .header-left { display: flex; flex-direction: column; gap: 2px; }
     header h1 { color: var(--paper); font-size: 1.1rem; font-weight: 600; letter-spacing: 0.02em; }
-    .subtitle { font-family: 'DM Mono', monospace; font-size: 0.62rem; color: #5a5a7a; letter-spacing: 0.1em; text-transform: uppercase; }
+    .subtitle { font-family: 'DM Mono', monospace; font-size: 0.62rem; color: #a0a0c0; letter-spacing: 0.1em; text-transform: uppercase; }
     .header-right { display: flex; align-items: center; gap: 14px; }
-    .back-link { font-family: 'DM Mono', monospace; font-size: 0.68rem; color: #5a5a7a; text-decoration: none; letter-spacing: 0.06em; transition: color 0.15s; }
+    .back-link { font-family: 'DM Mono', monospace; font-size: 0.68rem; color: #c0c0d8; text-decoration: none; letter-spacing: 0.06em; transition: color 0.15s; }
     .back-link:hover { color: var(--paper); }
+
+    /* HEADER IMPORT/EXPORT */
+    .header-io { display: flex; align-items: center; gap: 8px; }
+    .io-btn {
+      font-family: 'DM Mono', monospace; font-size: 0.68rem; letter-spacing: 0.06em;
+      text-transform: uppercase; padding: 5px 11px; border-radius: 2px; cursor: pointer;
+      border: 1px solid #3a3a5a; background: transparent; color: #c0c0d8;
+      transition: background 0.15s, color 0.15s; white-space: nowrap;
+    }
+    .io-btn:hover { background: #2a2a4a; color: var(--paper); }
+    .io-btn:active { transform: scale(0.97); }
+    .io-divider { width: 1px; height: 18px; background: #3a3a5a; }
+
+    /* IMPORT/EXPORT MODAL */
+    .io-overlay {
+      display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.55);
+      z-index: 1000; align-items: center; justify-content: center; padding: 20px;
+    }
+    .io-overlay.open { display: flex; }
+    .io-modal {
+      background: var(--white); border: 1px solid var(--border); border-radius: 4px;
+      width: 100%; max-width: 500px; overflow: hidden;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+    }
+    .io-modal-header {
+      background: var(--ink); padding: 13px 18px; display: flex;
+      align-items: center; justify-content: space-between;
+      border-bottom: 2px solid var(--accent);
+    }
+    .io-modal-title { font-family: 'DM Mono', monospace; font-size: 0.78rem; color: var(--paper); letter-spacing: 0.06em; text-transform: uppercase; }
+    .io-close { font-family: 'DM Mono', monospace; font-size: 0.9rem; color: #a0a0c0; background: none; border: none; cursor: pointer; padding: 0 4px; line-height: 1; }
+    .io-close:hover { color: var(--paper); }
+    .io-close:active { transform: none; }
+    .io-modal-body { padding: 18px; display: flex; flex-direction: column; gap: 12px; }
+    .io-modal-body textarea {
+      font-family: 'DM Mono', monospace; font-size: 0.74rem; line-height: 1.5;
+      padding: 10px 12px; border: 1px solid var(--border); border-radius: 3px;
+      background: var(--paper); color: var(--ink); resize: vertical; min-height: 140px;
+      outline: none; width: 100%;
+    }
+    .io-modal-body textarea:focus { border-color: var(--ink); }
+    .io-instructions { font-size: 0.82rem; color: var(--muted); line-height: 1.5; }
+    .io-btn-row { display: flex; gap: 8px; flex-wrap: wrap; }
+    .io-status { font-family: 'DM Mono', monospace; font-size: 0.72rem; min-height: 18px; }
 
     /* TABS */
     .tab-bar { background: var(--ink); display: flex; padding: 0 28px; gap: 4px; }
@@ -63,6 +107,7 @@
     .tab-btn:active { transform: none; }
     .tab-btn:hover { color: var(--paper); }
     .tab-btn.active { color: var(--paper); border-bottom-color: var(--accent); }
+    .tab-btn:not(.active) { color: #c0c0d8; }
 
     .tab-content { display: none; flex-direction: column; }
     .tab-content.active { display: flex; }
@@ -313,12 +358,55 @@
 <header>
   <div class="header-left">
     <h1>Scholarship Value Estimator</h1>
-    <div class="subtitle">Educator Finance Tools · v1.04</div>
+    <div class="subtitle">Educator Finance Tools · v1.07</div>
   </div>
   <div class="header-right">
+    <div class="header-io">
+      <button class="io-btn" onclick="openExport()">Export</button>
+      <div class="io-divider"></div>
+      <button class="io-btn" onclick="openImport()">Import</button>
+    </div>
     <a class="back-link" href="index.html">← All Tools</a>
   </div>
 </header>
+
+<!-- EXPORT MODAL -->
+<div class="io-overlay" id="export-overlay" onclick="closeOnOverlay(event,'export-overlay')">
+  <div class="io-modal">
+    <div class="io-modal-header">
+      <span class="io-modal-title">Export Your Data</span>
+      <button class="io-close" onclick="closeModal('export-overlay')">✕</button>
+    </div>
+    <div class="io-modal-body">
+      <p class="io-instructions">Copy the text below and save it somewhere — a notes app, email to yourself, or a document. Paste it back in using Import to restore your work.</p>
+      <textarea id="export-text" readonly onclick="this.select()"></textarea>
+      <div class="io-btn-row">
+        <button class="btn-primary" onclick="copyExport()" style="font-size:0.82rem;padding:8px 14px;">Copy to Clipboard</button>
+        <button class="btn-ghost"   onclick="closeModal('export-overlay')" style="font-size:0.82rem;padding:8px 14px;">Close</button>
+      </div>
+      <div class="io-status" id="export-status"></div>
+    </div>
+  </div>
+</div>
+
+<!-- IMPORT MODAL -->
+<div class="io-overlay" id="import-overlay" onclick="closeOnOverlay(event,'import-overlay')">
+  <div class="io-modal">
+    <div class="io-modal-header">
+      <span class="io-modal-title">Import Your Data</span>
+      <button class="io-close" onclick="closeModal('import-overlay')">✕</button>
+    </div>
+    <div class="io-modal-body">
+      <p class="io-instructions">Paste your previously exported text below, then click Load. This will replace your current inputs and scholarship list.</p>
+      <textarea id="import-text" placeholder="Paste your exported data here…"></textarea>
+      <div class="io-btn-row">
+        <button class="btn-accent" onclick="loadImport()" style="font-size:0.82rem;padding:8px 14px;">Load Data</button>
+        <button class="btn-ghost"  onclick="closeModal('import-overlay')" style="font-size:0.82rem;padding:8px 14px;">Cancel</button>
+      </div>
+      <div class="io-status" id="import-status"></div>
+    </div>
+  </div>
+</div>
 
 <div class="tab-bar">
   <button class="tab-btn active" id="tab-btn-estimator" onclick="switchTab('estimator')">📊 Value Estimator</button>
@@ -358,7 +446,7 @@
           </div>
           <input type="range" id="sl-amount" min="100" max="25000" step="50" value="1000" oninput="syncFromSlider('amount')" />
           <div class="slider-range-labels"><span>$100</span><span>$25,000</span></div>
-          <span class="slider-hint">The dollar value of the award if you win.</span>
+          <span class="slider-hint">The dollar value of the award if you are awarded it.</span>
         </div>
 
         <!-- Hours -->
@@ -386,7 +474,7 @@
           </div>
           <input type="range" id="sl-success" min="1" max="100" step="1" value="20" oninput="syncFromSlider('success')" />
           <div class="slider-range-labels"><span>1%</span><span>100%</span></div>
-          <span class="slider-hint">Rough % of applications you expect to win.</span>
+          <span class="slider-hint">Rough % of applications you expect to receive an award.</span>
           <!-- SUCCESS RATE GUIDE -->
           <div class="rate-guide">
             <button class="rate-guide-toggle" onclick="toggleRateGuide(this)">
@@ -539,8 +627,8 @@
       </div>
 
       <div class="explainer" style="margin-top:14px;">
-        <strong>How to read this:</strong> Your effective hourly rate accounts for the fact that you won't win every scholarship —
-        it spreads the expected value across all the time you spend applying, including applications you don't win.
+        <strong>How to read this:</strong> Your effective hourly rate accounts for the fact that you won't be awarded every scholarship —
+        it spreads the expected value across all the time you spend applying, including applications that don't result in an award.
         If that rate beats your after-tax wage, applying for scholarships is a better use of your time, financially speaking.
       </div>
 
@@ -637,7 +725,7 @@
               <th class="col-name">Scholarship Name</th>
               <th class="col-amount">Amount ($)</th>
               <th class="col-hours">Hours</th>
-              <th class="col-rate">Win Rate (%)</th>
+              <th class="col-rate">Award Rate (%)</th>
               <th class="col-result">Eff. Rate/hr</th>
               <th class="col-del"></th>
             </tr>
@@ -675,7 +763,7 @@
           <div class="port-sub" id="p-total-possible">—</div>
         </div>
         <div class="port-card highlight">
-          <div class="port-label">Expected Winnings</div>
+          <div class="port-label">Expected Awards</div>
           <div class="port-value green" id="p-expected">—</div>
           <div class="port-sub" id="p-expected-sub">—</div>
         </div>
@@ -721,7 +809,7 @@
               <th>Name</th>
               <th>Amount</th>
               <th>Hours</th>
-              <th>Win Rate</th>
+              <th>Award Rate</th>
               <th>Expected Value</th>
               <th>Eff. Rate/hr</th>
             </tr>
@@ -802,8 +890,8 @@ function syncFromNumber(f) {
 }
 
 ['amount','hours','success','wage','tax'].forEach(f => {
-  getNumber(f).addEventListener('input',  () => syncFromNumber(f));
   getNumber(f).addEventListener('change', () => syncFromNumber(f));
+  getNumber(f).addEventListener('blur',   () => syncFromNumber(f));
 });
 
 function resetDefaults() {
@@ -842,7 +930,7 @@ function calculate() {
 
   document.getElementById('res-amount').textContent               = fmt(amount);
   document.getElementById('res-target').textContent               = fmt(monetaryTarget);
-  document.getElementById('res-target-sub').textContent           = `Apply for ${fmt(monetaryTarget)} total to expect ${fmt(amount)} in awards at a ${successPct}% win rate.`;
+  document.getElementById('res-target-sub').textContent           = `Apply for ${fmt(monetaryTarget)} total to expect ${fmt(amount)} in awards at a ${successPct}% award rate.`;
   document.getElementById('res-scholarship-rate').textContent     = fmtRate(awardPerHour);
   document.getElementById('res-scholarship-rate-sub').textContent = `${fmt(amount)} award ÷ ${hours} hrs. Tax-free.`;
   document.getElementById('res-equiv').textContent                = fmt(taxEquivalent);
@@ -886,7 +974,7 @@ function copyResults() {
     '─────────────────────────────────────',
     `Scholarship Amount:       ${fmt(amount)}`,
     `Hours Spent Applying:     ${hours} hrs`,
-    `Expected Win Rate:        ${successPct}%`,
+    `Expected Award Rate:        ${successPct}%`,
     `Total to Apply For:       ${fmt(monetaryTarget)}`,
     '',
     `Effective Hourly Rate:    ${fmtRate(awardPerHour)} (tax-free)`,
@@ -1034,12 +1122,12 @@ function recalcPortfolio() {
   const hoursToMatch  = taxEquivTotal / wage;
 
   document.getElementById('p-count').textContent          = validRows.length;
-  document.getElementById('p-total-possible').textContent = `Up to ${fmt(totalPossible)} if you win everything.`;
+  document.getElementById('p-total-possible').textContent = `Up to ${fmt(totalPossible)} if you receive every award.`;
   document.getElementById('p-expected').textContent       = fmt(totalExpected);
-  document.getElementById('p-expected-sub').textContent   = `Based on your estimated win rates.`;
+  document.getElementById('p-expected-sub').textContent   = `Based on your estimated award rates.`;
   document.getElementById('p-hours').textContent          = fmtHrs(totalHours);
   document.getElementById('p-blended-rate').textContent   = fmtRate(blendedRate);
-  document.getElementById('p-blended-sub').textContent    = `Expected winnings ÷ total hours across all applications.`;
+  document.getElementById('p-blended-sub').textContent    = `Expected award total ÷ total hours across all applications.`;
   document.getElementById('p-after-tax').textContent      = fmtRate(afterTaxWage);
   document.getElementById('p-after-tax-sub').textContent  = `${fmt(wage)}/hr after ${taxPct}% taxes.`;
   document.getElementById('p-work-hours').textContent     = fmtHrs(hoursToMatch);
@@ -1056,7 +1144,7 @@ function recalcPortfolio() {
   if (ratio >= 2)         { pVBox.classList.add('good');    pVIcon.textContent = '🏆'; pVTitle.textContent = 'Excellent portfolio — your time is very well spent'; pVDesc.textContent = `Your blended rate (${fmtRate(blendedRate)}) is ${ratio.toFixed(1)}× your after-tax wage (${fmtRate(afterTaxWage)}). This is a strong strategy. If you want to improve further, look for more scholarships with high amounts relative to the effort required.`; }
   else if (ratio >= 1.1)  { pVBox.classList.add('good');    pVIcon.textContent = '✅'; pVTitle.textContent = 'Solid portfolio — scholarships beat working'; pVDesc.textContent = `Your blended rate (${fmtRate(blendedRate)}) is above your after-tax wage (${fmtRate(afterTaxWage)}). This strategy is working in your favor. Adding more high-value, high-probability scholarships will strengthen it further.`; }
   else if (ratio >= 0.85) { pVBox.classList.add('neutral'); pVIcon.textContent = '⚖️'; pVTitle.textContent = 'Close call — consider adjusting your mix'; pVDesc.textContent = `Your blended rate (${fmtRate(blendedRate)}) is roughly equal to your after-tax wage (${fmtRate(afterTaxWage)}). Try replacing lower-value or low-probability scholarships with ones that offer a better return per hour. Non-financial benefits (recognition, résumé) may still tip the balance.`; }
-  else                    { pVBox.classList.add('bad');     pVIcon.textContent = '⚠️'; pVTitle.textContent = 'This portfolio may not be worth your time'; pVDesc.textContent = `Your blended rate (${fmtRate(blendedRate)}) is below your after-tax wage (${fmtRate(afterTaxWage)}). Consider swapping in larger scholarships, cutting ones that require many hours for modest awards, or targeting scholarships where you have a higher chance of winning.`; }
+  else                    { pVBox.classList.add('bad');     pVIcon.textContent = '⚠️'; pVTitle.textContent = 'This portfolio may not be worth your time'; pVDesc.textContent = `Your blended rate (${fmtRate(blendedRate)}) is below your after-tax wage (${fmtRate(afterTaxWage)}). Consider swapping in larger scholarships, cutting ones that require many hours for modest awards, or targeting scholarships where you're more likely to be awarded.`; }
 
   // Breakdown table
   const tbody = document.getElementById('breakdown-tbody');
@@ -1111,7 +1199,7 @@ function copyPortfolioResults() {
     'SCHOLARSHIP PORTFOLIO PLANNER — Summary',
     '────────────────────────────────────────',
     `Scholarships in Plan:   ${rows.length}`,
-    `Expected Winnings:      ${fmt(totalExpected)}`,
+    `Expected Awards:        ${fmt(totalExpected)}`,
     `Total Hours:            ${fmtHrs(totalHours)}`,
     `Blended Effective Rate: ${fmtRate(blendedRate)}`,
     `Your After-Tax Wage:    ${fmtRate(afterTaxWage)}`,
@@ -1120,7 +1208,7 @@ function copyPortfolioResults() {
     ...rows.map(r => {
       const eff = r.amount / r.hours;
       const exp = r.amount * (r.rate / 100);
-      return `  ${r.name}: ${fmt(r.amount)} × ${r.rate}% win rate, ${fmtHrs(r.hours)}, ${fmtRate(eff)} eff. rate, ${fmt(exp)} expected`;
+      return `  ${r.name}: ${fmt(r.amount)} × ${r.rate}% award rate, ${fmtHrs(r.hours)}, ${fmtRate(eff)} eff. rate, ${fmt(exp)} expected`;
     }),
     '',
     `Verdict: ${document.getElementById('p-verdict-title').textContent}`,
@@ -1133,6 +1221,107 @@ function copyPortfolioResults() {
     setTimeout(() => el.classList.remove('show'), 2000);
   });
 }
+
+// ════════════════════════════════════════════════════════
+//  IMPORT / EXPORT
+// ════════════════════════════════════════════════════════
+function collectData() {
+  return {
+    version: 1,
+    estimator: {
+      amount:  parseFloat(getSlider('amount').value),
+      hours:   parseFloat(getSlider('hours').value),
+      success: parseFloat(getSlider('success').value),
+      wage:    parseFloat(getSlider('wage').value),
+      tax:     parseFloat(getSlider('tax').value),
+    },
+    portfolio: {
+      wage: parseFloat(document.getElementById('p-wage').value),
+      tax:  parseFloat(document.getElementById('p-tax').value),
+      rows: getRows().map(r => ({ name: r.name, amount: r.amount, hours: r.hours, rate: r.rate })),
+    }
+  };
+}
+
+function openExport() {
+  const json = JSON.stringify(collectData(), null, 2);
+  document.getElementById('export-text').value = json;
+  document.getElementById('export-status').textContent = '';
+  document.getElementById('export-overlay').classList.add('open');
+}
+
+function copyExport() {
+  const text = document.getElementById('export-text').value;
+  navigator.clipboard.writeText(text).then(() => {
+    const el = document.getElementById('export-status');
+    el.style.color = 'var(--green)';
+    el.textContent = '✓ Copied to clipboard.';
+    setTimeout(() => el.textContent = '', 2500);
+  });
+}
+
+function openImport() {
+  document.getElementById('import-text').value = '';
+  document.getElementById('import-status').textContent = '';
+  document.getElementById('import-overlay').classList.add('open');
+}
+
+function loadImport() {
+  const raw = document.getElementById('import-text').value.trim();
+  const statusEl = document.getElementById('import-status');
+  statusEl.textContent = '';
+
+  let data;
+  try {
+    data = JSON.parse(raw);
+  } catch {
+    statusEl.style.color = 'var(--accent)';
+    statusEl.textContent = 'Could not read that — make sure you pasted the full exported text.';
+    return;
+  }
+
+  try {
+    // Restore Tab 1 sliders
+    const e = data.estimator;
+    ['amount','hours','success','wage','tax'].forEach(f => {
+      if (e[f] !== undefined) {
+        getSlider(f).value = e[f];
+        getNumber(f).value = e[f];
+      }
+    });
+    calculate();
+
+    // Restore Tab 2
+    const p = data.portfolio;
+    if (p.wage !== undefined) document.getElementById('p-wage').value = p.wage;
+    if (p.tax  !== undefined) document.getElementById('p-tax').value  = p.tax;
+    document.getElementById('schol-tbody').innerHTML = '';
+    (p.rows || []).forEach(r => addRow(r));
+
+    statusEl.style.color = 'var(--green)';
+    statusEl.textContent = '✓ Data loaded successfully.';
+    setTimeout(() => closeModal('import-overlay'), 1200);
+  } catch {
+    statusEl.style.color = 'var(--accent)';
+    statusEl.textContent = 'Something went wrong loading the data. Try exporting fresh from your previous session.';
+  }
+}
+
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+}
+
+function closeOnOverlay(event, id) {
+  if (event.target === document.getElementById(id)) closeModal(id);
+}
+
+// Close modals on Escape
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    closeModal('export-overlay');
+    closeModal('import-overlay');
+  }
+});
 
 // ════════════════════════════════════════════════════════
 //  INIT
