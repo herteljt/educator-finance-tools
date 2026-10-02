@@ -4,9 +4,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="tool-name" content="Scholarship Value Estimator">
-  <meta name="tool-description" content="See how much your scholarship time is really worth — and analyze real scholarships for eligibility fit.">
+  <meta name="tool-description" content="See how much your scholarship time is really worth — and build a full application strategy with the portfolio planner.">
   <meta name="tool-icon" content="🎓">
-  <meta name="tool-tags" content="scholarships, college, financial aid, time value, AI">
+  <meta name="tool-tags" content="scholarships, college, financial aid, time value, strategy">
   <title>Scholarship Value Estimator</title>
   <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
   <style>
@@ -52,46 +52,26 @@
     .back-link:hover { color: var(--paper); }
 
     /* TABS */
-    .tab-bar {
-      background: var(--ink);
-      display: flex;
-      padding: 0 28px;
-      gap: 4px;
-    }
+    .tab-bar { background: var(--ink); display: flex; padding: 0 28px; gap: 4px; }
     .tab-btn {
-      font-family: 'DM Mono', monospace;
-      font-size: 0.72rem;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-      padding: 10px 16px;
-      border: none;
-      background: transparent;
-      color: #5a5a7a;
-      cursor: pointer;
-      border-bottom: 3px solid transparent;
-      margin-bottom: -1px;
-      transition: color 0.15s, border-color 0.15s;
-      border-radius: 0;
-      white-space: nowrap;
+      font-family: 'DM Mono', monospace; font-size: 0.72rem; letter-spacing: 0.06em;
+      text-transform: uppercase; padding: 10px 16px; border: none; background: transparent;
+      color: #5a5a7a; cursor: pointer; border-bottom: 3px solid transparent;
+      margin-bottom: -1px; transition: color 0.15s, border-color 0.15s;
+      border-radius: 0; white-space: nowrap;
     }
     .tab-btn:active { transform: none; }
     .tab-btn:hover { color: var(--paper); }
     .tab-btn.active { color: var(--paper); border-bottom-color: var(--accent); }
 
-    /* TAB CONTENT */
     .tab-content { display: none; flex-direction: column; }
     .tab-content.active { display: flex; }
 
     /* MAIN */
     main {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      max-width: 820px;
-      width: 100%;
-      margin: 0 auto;
-      padding: 28px 24px 60px;
-      gap: 20px;
+      flex: 1; display: flex; flex-direction: column;
+      max-width: 820px; width: 100%; margin: 0 auto;
+      padding: 28px 24px 60px; gap: 20px;
     }
 
     /* PANELS */
@@ -102,35 +82,76 @@
     .step-badge    { font-family: 'DM Mono', monospace; font-size: 0.62rem; background: var(--ink);   color: var(--paper); padding: 2px 8px; border-radius: 2px; letter-spacing: 0.06em; flex-shrink: 0; }
     .results-badge { font-family: 'DM Mono', monospace; font-size: 0.62rem; background: var(--green); color: white;        padding: 2px 8px; border-radius: 2px; letter-spacing: 0.06em; flex-shrink: 0; }
 
-    /* FORM GRID */
-    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-    @media (max-width: 540px) { .form-grid { grid-template-columns: 1fr; } }
-
-    .field { display: flex; flex-direction: column; gap: 6px; }
-    .field label { font-family: 'DM Mono', monospace; font-size: 0.72rem; color: var(--muted); letter-spacing: 0.05em; text-transform: uppercase; }
-    .field .hint  { font-size: 0.78rem; color: var(--muted); font-style: italic; line-height: 1.4; margin-top: 2px; }
-
-    .input-prefix-wrap { display: flex; align-items: stretch; border: 1px solid var(--border); border-radius: 3px; overflow: hidden; background: var(--paper); transition: border-color 0.15s; }
-    .input-prefix-wrap:focus-within { border-color: var(--ink); }
-    .input-prefix { font-family: 'DM Mono', monospace; font-size: 0.82rem; padding: 10px 12px; background: var(--cream); color: var(--muted); border-right: 1px solid var(--border); display: flex; align-items: center; white-space: nowrap; }
-    .input-prefix-wrap input { border: none; background: transparent; font-family: 'DM Mono', monospace; font-size: 0.82rem; padding: 10px 12px; color: var(--ink); outline: none; width: 100%; }
-
-    input[type="number"], input[type="text"], input[type="password"] {
-      font-family: 'DM Mono', monospace; font-size: 0.82rem; padding: 10px 14px;
-      border: 1px solid var(--border); border-radius: 3px; background: var(--paper);
-      color: var(--ink); outline: none; transition: border-color 0.15s; width: 100%;
+    /* SLIDER ROWS */
+    .slider-group { display: flex; flex-direction: column; gap: 18px; }
+    .slider-row { display: flex; flex-direction: column; gap: 6px; }
+    .slider-row-top { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+    .slider-label { font-family: 'DM Mono', monospace; font-size: 0.72rem; color: var(--muted); letter-spacing: 0.05em; text-transform: uppercase; }
+    .slider-value-wrap { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
+    .slider-prefix { font-family: 'DM Mono', monospace; font-size: 0.82rem; color: var(--muted); }
+    .slider-number {
+      font-family: 'DM Mono', monospace; font-size: 0.88rem; font-weight: 500; color: var(--ink);
+      width: 70px; text-align: right; border: 1px solid var(--border); border-radius: 3px;
+      background: var(--paper); padding: 4px 8px; outline: none; transition: border-color 0.15s;
     }
-    input:focus { border-color: var(--ink); }
-    select {
-      font-family: 'DM Mono', monospace; font-size: 0.82rem; padding: 10px 14px;
-      border: 1px solid var(--border); border-radius: 3px; background: var(--paper);
-      color: var(--ink); outline: none; width: 100%; cursor: pointer;
-    }
-    select:focus { border-color: var(--ink); }
+    .slider-number:focus { border-color: var(--ink); }
+    .slider-suffix { font-family: 'DM Mono', monospace; font-size: 0.82rem; color: var(--muted); }
+    .slider-number::-webkit-inner-spin-button,
+    .slider-number::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+    .slider-number { -moz-appearance: textfield; }
+    .slider-hint { font-size: 0.78rem; color: var(--muted); font-style: italic; line-height: 1.4; }
 
-    input[type=number]::-webkit-inner-spin-button,
-    input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
-    input[type=number] { -moz-appearance: textfield; }
+    input[type="range"] {
+      -webkit-appearance: none; appearance: none; width: 100%; height: 5px;
+      background: var(--cream); border: 1px solid var(--border); border-radius: 3px;
+      outline: none; cursor: pointer;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%;
+      background: var(--ink); border: 2px solid var(--paper);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.25); cursor: pointer; transition: background 0.15s;
+    }
+    input[type="range"]::-moz-range-thumb {
+      width: 18px; height: 18px; border-radius: 50%; background: var(--ink);
+      border: 2px solid var(--paper); box-shadow: 0 1px 3px rgba(0,0,0,0.25); cursor: pointer;
+    }
+    input[type="range"]:hover::-webkit-slider-thumb { background: var(--accent); }
+    input[type="range"]:hover::-moz-range-thumb     { background: var(--accent); }
+    .slider-range-labels {
+      display: flex; justify-content: space-between;
+      font-family: 'DM Mono', monospace; font-size: 0.62rem; color: var(--muted); margin-top: 2px;
+    }
+
+    /* SECTION DIVIDER LABEL */
+    .section-divider-label { display: flex; align-items: center; gap: 12px; margin: 4px 0; }
+    .section-divider-label span { font-family: 'DM Mono', monospace; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); white-space: nowrap; }
+    .section-divider-label::before, .section-divider-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+    /* SUCCESS RATE GUIDE */
+    .rate-guide {
+      margin-top: 6px;
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+    .rate-guide-toggle {
+      font-family: 'DM Mono', monospace; font-size: 0.68rem; color: var(--muted);
+      letter-spacing: 0.05em; text-transform: uppercase;
+      background: var(--cream); border: none; width: 100%; text-align: left;
+      padding: 8px 12px; cursor: pointer; display: flex; justify-content: space-between; align-items: center;
+    }
+    .rate-guide-toggle:hover { color: var(--ink); }
+    .rate-guide-body { display: none; padding: 0; }
+    .rate-guide-body.open { display: block; }
+    .rate-guide-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+    .rate-guide-table th {
+      font-family: 'DM Mono', monospace; font-size: 0.62rem; text-transform: uppercase;
+      letter-spacing: 0.06em; color: var(--muted); padding: 8px 12px;
+      border-bottom: 1px solid var(--border); text-align: left; background: var(--paper);
+    }
+    .rate-guide-table td { padding: 8px 12px; border-bottom: 1px solid var(--border); vertical-align: top; line-height: 1.45; }
+    .rate-guide-table tr:last-child td { border-bottom: none; }
+    .rate-guide-table td:first-child { font-family: 'DM Mono', monospace; font-size: 0.78rem; font-weight: 500; white-space: nowrap; }
 
     /* BUTTONS */
     .btn-row { display: flex; gap: 10px; margin-top: 4px; flex-wrap: wrap; }
@@ -139,31 +160,28 @@
     button:disabled { opacity: 0.38; cursor: not-allowed; }
     .btn-primary { background: var(--ink); color: var(--paper); }
     .btn-primary:hover:not(:disabled) { opacity: 0.82; }
-    .btn-accent  { background: var(--accent); color: white; }
-    .btn-accent:hover:not(:disabled)  { opacity: 0.85; }
-    .btn-ghost   { background: transparent; border: 1px solid var(--border); color: var(--muted); }
-    .btn-ghost:hover:not(:disabled)   { border-color: var(--ink); color: var(--ink); }
-    .btn-green   { background: var(--green); color: white; font-size: 0.78rem; padding: 8px 14px; }
-    .btn-green:hover:not(:disabled)   { opacity: 0.85; }
+    .btn-accent { background: var(--accent); color: white; }
+    .btn-accent:hover:not(:disabled) { opacity: 0.85; }
+    .btn-ghost { background: transparent; border: 1px solid var(--border); color: var(--muted); }
+    .btn-ghost:hover:not(:disabled) { border-color: var(--ink); color: var(--ink); }
+    .btn-green { background: var(--green); color: white; }
+    .btn-green:hover:not(:disabled) { opacity: 0.85; }
 
     /* DIVIDER */
     .section-divider { border: none; border-top: 1px solid var(--border); margin: 16px 0; }
 
-    /* TAB 1 RESULTS */
-    #results-panel { display: none; }
+    /* RESULT CARDS */
     .results-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
     @media (max-width: 540px) { .results-grid { grid-template-columns: 1fr; } }
-
     .result-card { background: var(--paper); border: 1px solid var(--border); border-radius: 3px; padding: 16px; display: flex; flex-direction: column; gap: 4px; }
     .result-card.highlight { background: var(--green-light); border-color: var(--green); }
-    .result-card.warn      { background: var(--accent-light); border-color: var(--accent); }
     .result-label { font-family: 'DM Mono', monospace; font-size: 0.66rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
     .result-value { font-family: 'DM Mono', monospace; font-size: 1.45rem; font-weight: 500; color: var(--ink); line-height: 1.1; }
     .result-value.green { color: var(--green); }
-    .result-value.red   { color: var(--accent); }
     .result-sub { font-size: 0.78rem; color: var(--muted); font-style: italic; margin-top: 2px; line-height: 1.4; }
 
-    .verdict-box { border-radius: 3px; padding: 18px 20px; display: flex; align-items: flex-start; gap: 14px; margin-top: 4px; }
+    /* VERDICT */
+    .verdict-box { border-radius: 3px; padding: 18px 20px; display: flex; align-items: flex-start; gap: 14px; }
     .verdict-box.good    { background: var(--green-light);  border: 1px solid var(--green);  }
     .verdict-box.bad     { background: var(--accent-light); border: 1px solid var(--accent); }
     .verdict-box.neutral { background: var(--cream);        border: 1px solid var(--border); }
@@ -172,6 +190,7 @@
     .verdict-title { font-weight: 600; font-size: 0.95rem; }
     .verdict-desc  { font-size: 0.84rem; color: var(--muted); line-height: 1.5; }
 
+    /* EXPLAINER */
     .explainer { font-size: 0.82rem; color: var(--muted); font-style: italic; line-height: 1.55; padding: 12px 16px; background: var(--cream); border-left: 3px solid var(--border); border-radius: 0 3px 3px 0; margin-top: 14px; }
     .explainer strong { font-style: normal; color: var(--ink); }
 
@@ -179,82 +198,114 @@
     .intro { font-size: 0.9rem; color: var(--muted); line-height: 1.6; }
     .intro strong { color: var(--ink); }
 
-    /* ── TAB 2 STYLES ── */
-    .key-instructions { font-size: 0.85rem; line-height: 1.6; color: var(--muted); margin-bottom: 14px; }
-    .key-instructions ol { padding-left: 18px; margin-top: 6px; }
-    .key-instructions li { margin-bottom: 4px; }
-    .key-instructions a { color: var(--accent); }
-    .input-row { display: flex; gap: 10px; align-items: stretch; }
-    .input-row input { flex: 1; }
-    .model-row { display: flex; align-items: center; gap: 10px; margin-top: 12px; }
-    .error-line   { font-family: 'DM Mono', monospace; font-size: 0.74rem; color: var(--accent); margin-top: 8px; min-height: 18px; }
-    .success-line { font-family: 'DM Mono', monospace; font-size: 0.74rem; color: var(--green);  margin-top: 6px; min-height: 18px; }
+    /* COPY BUTTON feedback */
+    .copy-confirm { font-family: 'DM Mono', monospace; font-size: 0.72rem; color: var(--green); margin-left: 6px; opacity: 0; transition: opacity 0.3s; }
+    .copy-confirm.show { opacity: 1; }
 
-    .url-slots { display: flex; flex-direction: column; gap: 12px; }
-    .url-slot { display: flex; align-items: center; gap: 10px; }
-    .slot-num { font-family: 'DM Mono', monospace; font-size: 0.72rem; color: var(--muted); width: 20px; flex-shrink: 0; text-align: right; }
-    .url-slot input { flex: 1; }
+    /* VIDEO */
+    .video-wrap { position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 3px; background: var(--ink); }
+    .video-wrap iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; }
+    .video-placeholder { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; color: #5a5a7a; }
+    .video-placeholder .play-icon { font-size: 3rem; opacity: 0.4; }
+    .video-placeholder p { font-family: 'DM Mono', monospace; font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.4; }
 
-    /* Scholarship result cards */
-    .schol-results { display: flex; flex-direction: column; gap: 16px; }
+    /* ══════════════════════════════════════════
+       TAB 2: PORTFOLIO PLANNER
+    ══════════════════════════════════════════ */
 
-    .schol-card { border: 1px solid var(--border); border-radius: 4px; overflow: hidden; background: var(--white); }
-    .schol-card-header {
-      background: var(--cream); border-bottom: 1px solid var(--border);
-      padding: 12px 16px; display: flex; align-items: flex-start;
-      justify-content: space-between; gap: 12px; flex-wrap: wrap;
+    /* Compact inline inputs for the portfolio tab */
+    .compact-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    @media (max-width: 540px) { .compact-grid { grid-template-columns: 1fr; } }
+    .compact-field { display: flex; flex-direction: column; gap: 5px; }
+    .compact-field label { font-family: 'DM Mono', monospace; font-size: 0.70rem; color: var(--muted); letter-spacing: 0.05em; text-transform: uppercase; }
+    .compact-field .hint { font-size: 0.76rem; color: var(--muted); font-style: italic; line-height: 1.4; }
+    .input-prefix-wrap { display: flex; align-items: stretch; border: 1px solid var(--border); border-radius: 3px; overflow: hidden; background: var(--paper); transition: border-color 0.15s; }
+    .input-prefix-wrap:focus-within { border-color: var(--ink); }
+    .input-prefix { font-family: 'DM Mono', monospace; font-size: 0.80rem; padding: 8px 10px; background: var(--cream); color: var(--muted); border-right: 1px solid var(--border); display: flex; align-items: center; white-space: nowrap; }
+    .input-prefix-wrap input { border: none; background: transparent; font-family: 'DM Mono', monospace; font-size: 0.80rem; padding: 8px 10px; color: var(--ink); outline: none; width: 100%; }
+    .input-prefix-wrap input::-webkit-inner-spin-button,
+    .input-prefix-wrap input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+    .input-prefix-wrap input { -moz-appearance: textfield; }
+
+    /* Transfer badge */
+    .transfer-note {
+      font-family: 'DM Mono', monospace; font-size: 0.68rem; color: var(--green);
+      background: var(--green-light); border: 1px solid var(--green);
+      padding: 3px 10px; border-radius: 2px; display: inline-block; margin-bottom: 12px;
     }
-    .schol-card-title { font-weight: 600; font-size: 0.9rem; line-height: 1.4; flex: 1; min-width: 0; }
-    .schol-card-meta  { display: flex; gap: 8px; align-items: center; flex-shrink: 0; flex-wrap: wrap; }
 
-    .badge-amount {
-      font-family: 'DM Mono', monospace; font-size: 0.7rem;
-      background: var(--ink); color: var(--paper);
-      padding: 3px 9px; border-radius: 2px; white-space: nowrap;
+    /* SCHOLARSHIP TABLE */
+    .schol-table-wrap { overflow-x: auto; }
+    .schol-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; min-width: 560px; }
+    .schol-table th {
+      font-family: 'DM Mono', monospace; font-size: 0.62rem; text-transform: uppercase;
+      letter-spacing: 0.06em; color: var(--muted); padding: 9px 10px;
+      border-bottom: 2px solid var(--border); text-align: left; background: var(--paper);
+      white-space: nowrap;
     }
-    .badge-deadline {
-      font-family: 'DM Mono', monospace; font-size: 0.7rem;
-      padding: 3px 9px; border-radius: 2px; white-space: nowrap;
+    .schol-table td { padding: 7px 10px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+    .schol-table tr:last-child td { border-bottom: none; }
+    .schol-table tr:hover td { background: var(--paper); }
+
+    .schol-table input[type="text"],
+    .schol-table input[type="number"] {
+      font-family: 'DM Mono', monospace; font-size: 0.80rem; padding: 6px 8px;
+      border: 1px solid var(--border); border-radius: 3px; background: var(--paper);
+      color: var(--ink); outline: none; transition: border-color 0.15s; width: 100%;
     }
-    .badge-deadline.upcoming { background: var(--accent-light); color: var(--accent); border: 1px solid var(--accent); }
-    .badge-deadline.future   { background: var(--green-light);  color: var(--green);  border: 1px solid var(--green); }
-    .badge-deadline.unknown  { background: var(--cream); color: var(--muted); border: 1px solid var(--border); }
+    .schol-table input:focus { border-color: var(--ink); }
+    .schol-table input[type=number]::-webkit-inner-spin-button,
+    .schol-table input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
+    .schol-table input[type=number] { -moz-appearance: textfield; }
 
-    .schol-card-body { padding: 16px; display: flex; flex-direction: column; gap: 14px; }
-
-    .fit-bar-wrap { display: flex; align-items: center; gap: 10px; }
-    .fit-label { font-family: 'DM Mono', monospace; font-size: 0.68rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; white-space: nowrap; }
-    .fit-bar-track { flex: 1; height: 7px; background: var(--cream); border-radius: 3px; overflow: hidden; border: 1px solid var(--border); }
-    .fit-bar-fill  { height: 100%; border-radius: 3px; transition: width 0.5s ease; }
-    .fit-bar-fill.high   { background: var(--green); }
-    .fit-bar-fill.medium { background: #b0853a; }
-    .fit-bar-fill.low    { background: var(--accent); }
-    .fit-pct { font-family: 'DM Mono', monospace; font-size: 0.82rem; font-weight: 500; width: 40px; text-align: right; }
-    .fit-pct.high   { color: var(--green); }
-    .fit-pct.medium { color: #b0853a; }
-    .fit-pct.low    { color: var(--accent); }
-
-    .schol-analysis { font-size: 0.85rem; line-height: 1.6; color: var(--ink); }
-    .schol-analysis p { margin-bottom: 8px; }
-    .schol-analysis p:last-child { margin-bottom: 0; }
-
-    .schol-card-footer {
-      padding: 12px 16px; background: var(--paper); border-top: 1px solid var(--border);
-      display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;
+    .col-name   { min-width: 140px; }
+    .col-amount { width: 100px; }
+    .col-hours  { width: 80px; }
+    .col-rate   { width: 80px; }
+    .col-result { width: 90px; font-family: 'DM Mono', monospace; font-size: 0.78rem; color: var(--muted); }
+    .col-result.good   { color: var(--green); }
+    .col-result.medium { color: #b0853a; }
+    .col-result.bad    { color: var(--accent); }
+    .col-del { width: 36px; text-align: center; }
+    .del-btn {
+      font-family: 'DM Mono', monospace; font-size: 0.78rem; background: transparent;
+      border: none; color: var(--muted); cursor: pointer; padding: 4px 6px; border-radius: 2px;
+      line-height: 1;
     }
-    .send-note { font-size: 0.78rem; color: var(--muted); font-style: italic; }
+    .del-btn:hover { color: var(--accent); background: var(--accent-light); }
+    .del-btn:active { transform: none; }
 
-    .dots { display: flex; gap: 5px; }
-    .dot { width: 7px; height: 7px; background: var(--muted); border-radius: 50%; animation: bounce 1.2s ease-in-out infinite; }
-    .dot:nth-child(2) { animation-delay: 0.2s; }
-    .dot:nth-child(3) { animation-delay: 0.4s; }
-    @keyframes bounce { 0%,60%,100% { transform: translateY(0); opacity: 0.4; } 30% { transform: translateY(-5px); opacity: 1; } }
+    .add-row-btn { font-size: 0.80rem; padding: 8px 14px; }
 
-    .schol-card.loading .schol-card-header { background: var(--cream); }
-    .schol-card.loading .schol-card-body   { padding: 20px 16px; }
-    .schol-card.error-card { border-color: var(--accent); }
-    .schol-card.error-card .schol-card-header { background: var(--accent-light); }
-    .error-msg { font-family: 'DM Mono', monospace; font-size: 0.78rem; color: var(--accent); }
+    /* PORTFOLIO SUMMARY CARDS */
+    .portfolio-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+    @media (max-width: 600px) { .portfolio-grid { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 380px) { .portfolio-grid { grid-template-columns: 1fr; } }
+
+    .port-card { background: var(--paper); border: 1px solid var(--border); border-radius: 3px; padding: 14px; display: flex; flex-direction: column; gap: 3px; }
+    .port-card.highlight { background: var(--green-light); border-color: var(--green); }
+    .port-card.warn      { background: var(--accent-light); border-color: var(--accent); }
+    .port-label { font-family: 'DM Mono', monospace; font-size: 0.62rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+    .port-value { font-family: 'DM Mono', monospace; font-size: 1.2rem; font-weight: 500; color: var(--ink); line-height: 1.15; }
+    .port-value.green { color: var(--green); }
+    .port-value.red   { color: var(--accent); }
+    .port-sub { font-size: 0.76rem; color: var(--muted); font-style: italic; line-height: 1.4; margin-top: 2px; }
+
+    /* BREAKDOWN TABLE */
+    .breakdown-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+    .breakdown-table th {
+      font-family: 'DM Mono', monospace; font-size: 0.62rem; text-transform: uppercase;
+      letter-spacing: 0.06em; color: var(--muted); padding: 8px 12px;
+      border-bottom: 1px solid var(--border); text-align: left;
+    }
+    .breakdown-table td { padding: 8px 12px; border-bottom: 1px solid var(--border); }
+    .breakdown-table tr:last-child td { border-bottom: none; }
+    .breakdown-table .td-name { font-weight: 600; }
+    .breakdown-table .td-mono { font-family: 'DM Mono', monospace; font-size: 0.78rem; }
+    .breakdown-table .td-good   { font-family: 'DM Mono', monospace; font-size: 0.78rem; color: var(--green); }
+    .breakdown-table .td-medium { font-family: 'DM Mono', monospace; font-size: 0.78rem; color: #b0853a; }
+    .breakdown-table .td-bad    { font-family: 'DM Mono', monospace; font-size: 0.78rem; color: var(--accent); }
+    .breakdown-table tfoot td { font-family: 'DM Mono', monospace; font-size: 0.80rem; font-weight: 500; border-top: 2px solid var(--border); border-bottom: none; }
   </style>
 </head>
 <body>
@@ -262,7 +313,7 @@
 <header>
   <div class="header-left">
     <h1>Scholarship Value Estimator</h1>
-    <div class="subtitle">Educator Finance Tools · v1.01</div>
+    <div class="subtitle">Educator Finance Tools · v1.03</div>
   </div>
   <div class="header-right">
     <a class="back-link" href="index.html">← All Tools</a>
@@ -271,7 +322,7 @@
 
 <div class="tab-bar">
   <button class="tab-btn active" id="tab-btn-estimator" onclick="switchTab('estimator')">📊 Value Estimator</button>
-  <button class="tab-btn" id="tab-btn-analyzer" onclick="switchTab('analyzer')">🔍 Scholarship Analyzer</button>
+  <button class="tab-btn" id="tab-btn-portfolio" onclick="switchTab('portfolio')">📋 Portfolio Planner</button>
 </div>
 
 
@@ -282,86 +333,155 @@
 <main>
 
   <p class="intro">
-    Scholarships are <strong>tax-free money</strong> — which means they're worth more than the same amount earned at a job.
-    This tool helps you figure out your effective hourly rate from applying, and how that compares to just working more hours.
+    Scholarships are <strong>tax-free money</strong> — which makes them worth more than the same amount earned at a job.
+    Adjust the sliders below to see your effective hourly rate and how it compares to working.
   </p>
 
   <div class="panel">
     <div class="panel-header">
-      <span class="step-badge">STEP 1</span>
-      <h2>Your Scholarship Application</h2>
+      <span class="step-badge">INPUTS</span>
+      <h2>Your Scholarship &amp; Job</h2>
     </div>
     <div class="panel-body">
-      <div class="form-grid">
-        <div class="field">
-          <label>Scholarship Amount</label>
-          <div class="input-prefix-wrap">
-            <span class="input-prefix">$</span>
-            <input type="number" id="scholarship-amount" placeholder="1000" min="0" step="1" />
-          </div>
-          <span class="hint">The dollar value of the award if you win.</span>
-        </div>
-        <div class="field">
-          <label>Hours Spent Applying</label>
-          <div class="input-prefix-wrap">
-            <span class="input-prefix">hrs</span>
-            <input type="number" id="hours-applying" placeholder="10" min="0.5" step="0.5" />
-          </div>
-          <span class="hint">Total hours writing essays, gathering materials, and submitting.</span>
-        </div>
-        <div class="field">
-          <label>Your Success Rate</label>
-          <div class="input-prefix-wrap">
-            <span class="input-prefix">%</span>
-            <input type="number" id="success-rate" placeholder="20" min="1" max="100" step="1" />
-          </div>
-          <span class="hint">Rough % of applications you expect to win. 20% is a reasonable starting estimate.</span>
-        </div>
-      </div>
-    </div>
-  </div>
+      <div class="slider-group">
 
-  <div class="panel">
-    <div class="panel-header">
-      <span class="step-badge">STEP 2</span>
-      <h2>Your Job (for comparison)</h2>
-    </div>
-    <div class="panel-body">
-      <div class="form-grid">
-        <div class="field">
-          <label>Hourly Wage</label>
-          <div class="input-prefix-wrap">
-            <span class="input-prefix">$/hr</span>
-            <input type="number" id="hourly-wage" placeholder="15" min="1" step="0.25" />
+        <div class="section-divider-label"><span>Scholarship</span></div>
+
+        <!-- Amount -->
+        <div class="slider-row">
+          <div class="slider-row-top">
+            <span class="slider-label">Scholarship Amount</span>
+            <div class="slider-value-wrap">
+              <span class="slider-prefix">$</span>
+              <input type="number" class="slider-number" id="num-amount" value="1000" min="100" max="25000" step="50" />
+            </div>
           </div>
-          <span class="hint">What you earn (or would earn) per hour at a job.</span>
+          <input type="range" id="sl-amount" min="100" max="25000" step="50" value="1000" oninput="syncFromSlider('amount')" />
+          <div class="slider-range-labels"><span>$100</span><span>$25,000</span></div>
+          <span class="slider-hint">The dollar value of the award if you win.</span>
         </div>
-        <div class="field">
-          <label>Your Marginal Tax Rate</label>
-          <div class="input-prefix-wrap">
-            <span class="input-prefix">%</span>
-            <input type="number" id="tax-rate" placeholder="12" min="0" max="50" step="1" />
+
+        <!-- Hours -->
+        <div class="slider-row">
+          <div class="slider-row-top">
+            <span class="slider-label">Hours Spent Applying</span>
+            <div class="slider-value-wrap">
+              <input type="number" class="slider-number" id="num-hours" value="10" min="1" max="80" step="1" />
+              <span class="slider-suffix">hrs</span>
+            </div>
           </div>
-          <span class="hint">The % of your next earned dollar that goes to taxes. Most college students: 10–22%. Unsure? Use 12%.</span>
+          <input type="range" id="sl-hours" min="1" max="80" step="1" value="10" oninput="syncFromSlider('hours')" />
+          <div class="slider-range-labels"><span>1 hr</span><span>80 hrs</span></div>
+          <span class="slider-hint">Total time writing essays, gathering materials, and submitting.</span>
         </div>
+
+        <!-- Success Rate -->
+        <div class="slider-row">
+          <div class="slider-row-top">
+            <span class="slider-label">Success Rate</span>
+            <div class="slider-value-wrap">
+              <input type="number" class="slider-number" id="num-success" value="20" min="1" max="100" step="1" />
+              <span class="slider-suffix">%</span>
+            </div>
+          </div>
+          <input type="range" id="sl-success" min="1" max="100" step="1" value="20" oninput="syncFromSlider('success')" />
+          <div class="slider-range-labels"><span>1%</span><span>100%</span></div>
+          <span class="slider-hint">Rough % of applications you expect to win.</span>
+          <!-- SUCCESS RATE GUIDE -->
+          <div class="rate-guide">
+            <button class="rate-guide-toggle" onclick="toggleRateGuide(this)">
+              <span>Not sure? See typical success rates by scholarship type</span>
+              <span id="rate-guide-arrow">▾</span>
+            </button>
+            <div class="rate-guide-body" id="rate-guide-body">
+              <table class="rate-guide-table">
+                <thead>
+                  <tr>
+                    <th>Type</th>
+                    <th>Typical Rate</th>
+                    <th>Examples</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>Department / program-specific</td>
+                    <td>30–50%</td>
+                    <td>Scholarships tied to your major or college. Fewer applicants, narrower pool.</td>
+                  </tr>
+                  <tr>
+                    <td>Institutional (your school)</td>
+                    <td>15–30%</td>
+                    <td>Foundation scholarships, alumni-funded awards at your university.</td>
+                  </tr>
+                  <tr>
+                    <td>Regional / community</td>
+                    <td>10–25%</td>
+                    <td>Local civic groups, employer scholarships, community foundations.</td>
+                  </tr>
+                  <tr>
+                    <td>State-level</td>
+                    <td>5–15%</td>
+                    <td>State-sponsored awards, professional association scholarships.</td>
+                  </tr>
+                  <tr>
+                    <td>National / highly competitive</td>
+                    <td>1–10%</td>
+                    <td>Gates Scholarship, Fulbright, large national foundations.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="section-divider-label"><span>Job Comparison</span></div>
+
+        <!-- Wage -->
+        <div class="slider-row">
+          <div class="slider-row-top">
+            <span class="slider-label">Hourly Wage</span>
+            <div class="slider-value-wrap">
+              <span class="slider-prefix">$</span>
+              <input type="number" class="slider-number" id="num-wage" value="15" min="7.25" max="50" step="0.25" />
+              <span class="slider-suffix">/hr</span>
+            </div>
+          </div>
+          <input type="range" id="sl-wage" min="7.25" max="50" step="0.25" value="15" oninput="syncFromSlider('wage')" />
+          <div class="slider-range-labels"><span>$7.25</span><span>$50</span></div>
+          <span class="slider-hint">What you earn (or would earn) per hour at a job.</span>
+        </div>
+
+        <!-- Tax Rate -->
+        <div class="slider-row">
+          <div class="slider-row-top">
+            <span class="slider-label">Marginal Tax Rate</span>
+            <div class="slider-value-wrap">
+              <input type="number" class="slider-number" id="num-tax" value="12" min="0" max="40" step="1" />
+              <span class="slider-suffix">%</span>
+            </div>
+          </div>
+          <input type="range" id="sl-tax" min="0" max="40" step="1" value="12" oninput="syncFromSlider('tax')" />
+          <div class="slider-range-labels"><span>0%</span><span>40%</span></div>
+          <span class="slider-hint">The % of your next earned dollar that goes to taxes. Most college students: 10–22%. Unsure? Leave it at 12%.</span>
+        </div>
+
       </div>
 
-      <div class="explainer">
-        <strong>Why does tax rate matter?</strong> Wages are taxed; scholarship money generally isn't (for tuition and fees).
-        A $1,000 scholarship is worth the same as earning roughly $1,136 at a job if your tax rate is 12% — because you'd owe
-        about $136 in taxes on the wages but nothing on the scholarship.
+      <div class="explainer" style="margin-top:18px;">
+        <strong>Why does tax rate matter?</strong> Wages are taxed; scholarship money generally isn't (when used for tuition and fees).
+        A $1,000 scholarship is worth the same as roughly $1,136 in wages at a 12% tax rate — because you'd owe about $136 in taxes
+        on the wages but nothing on the scholarship.
       </div>
-
-      <div class="error-line" id="error-line"></div>
 
       <div class="btn-row" style="margin-top:16px;">
-        <button class="btn-accent" onclick="calculate()">Calculate</button>
-        <button class="btn-ghost"  onclick="resetForm()">Reset</button>
+        <button class="btn-ghost" onclick="resetDefaults()">↺ Reset to Defaults</button>
       </div>
+
     </div>
   </div>
 
-  <div class="panel" id="results-panel">
+  <!-- RESULTS -->
+  <div class="panel">
     <div class="panel-header">
       <span class="results-badge">RESULTS</span>
       <h2>Your Scholarship Value</h2>
@@ -376,7 +496,7 @@
           <div class="result-sub">The award you're applying for.</div>
         </div>
         <div class="result-card">
-          <div class="result-label">Monetary Target to Apply For</div>
+          <div class="result-label">Total to Apply For</div>
           <div class="result-value" id="res-target">—</div>
           <div class="result-sub" id="res-target-sub">—</div>
         </div>
@@ -418,12 +538,46 @@
         </div>
       </div>
 
-      <div class="explainer" style="margin-top:16px;">
-        <strong>How to read this:</strong> Your effective hourly rate from applying accounts for the fact that you won't win every scholarship —
-        it spreads the expected value of winning across all the time you spend applying (including the applications you don't win).
-        If that rate beats your after-tax hourly wage, applying for scholarships is a better use of your time, financially speaking.
+      <div class="explainer" style="margin-top:14px;">
+        <strong>How to read this:</strong> Your effective hourly rate accounts for the fact that you won't win every scholarship —
+        it spreads the expected value across all the time you spend applying, including applications you don't win.
+        If that rate beats your after-tax wage, applying for scholarships is a better use of your time, financially speaking.
       </div>
 
+      <div class="btn-row" style="margin-top:16px;">
+        <button class="btn-ghost" onclick="copyResults()" id="copy-btn">📋 Copy Results</button>
+        <span class="copy-confirm" id="copy-confirm">✓ Copied!</span>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- VIDEO -->
+  <div class="panel">
+    <div class="panel-header">
+      <span class="step-badge">VIDEO</span>
+      <h2>How to Use This Tool</h2>
+    </div>
+    <div class="panel-body">
+      <div class="video-wrap">
+        <!-- Replace YOUTUBE_VIDEO_ID with your actual video ID (the part after ?v= in the URL) -->
+        <!-- To activate: uncomment the iframe and delete the placeholder div -->
+
+        <!-- PLACEHOLDER — remove this when video is ready -->
+        <div class="video-placeholder">
+          <div class="play-icon">▶</div>
+          <p>Video coming soon</p>
+        </div>
+
+        <!-- REAL VIDEO — uncomment when ready
+        <iframe
+          src="https://www.youtube.com/embed/YOUTUBE_VIDEO_ID"
+          title="Scholarship Value Estimator walkthrough"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowfullscreen>
+        </iframe>
+        -->
+      </div>
     </div>
   </div>
 
@@ -432,176 +586,260 @@
 
 
 <!-- ══════════════════════════════════════════════════════
-     TAB 2 — SCHOLARSHIP ANALYZER
+     TAB 2 — PORTFOLIO PLANNER
 ══════════════════════════════════════════════════════ -->
-<div id="tab-analyzer" class="tab-content">
+<div id="tab-portfolio" class="tab-content">
 <main>
 
   <p class="intro">
-    Paste up to four scholarship URLs. The tool fetches each page, extracts the details, and uses AI to assess
-    how well you match the eligibility requirements — so you can focus your time on your best opportunities.
+    Plan your full scholarship strategy. Add each scholarship you're considering, estimate your effort and odds,
+    and see your overall expected return — so you can decide where to focus your time.
   </p>
 
-  <!-- STEP 1: API KEY -->
+  <!-- JOB CONTEXT -->
   <div class="panel">
     <div class="panel-header">
       <span class="step-badge">STEP 1</span>
-      <h2>Enter Your Gemini API Key</h2>
+      <h2>Your Job (for comparison)</h2>
     </div>
     <div class="panel-body">
-      <div class="key-instructions">
-        <p>Free tier available — no credit card needed.</p>
-        <ol>
-          <li>Go to <a href="https://aistudio.google.com/app/apikey" target="_blank">aistudio.google.com/app/apikey</a></li>
-          <li>Sign in with any Google account</li>
-          <li>Click <strong>Create API key</strong> and copy it</li>
-          <li>Paste it below — stored in this browser tab only</li>
-        </ol>
-      </div>
-      <div class="input-row">
-        <input type="password" id="api-key-input" placeholder="AIzaSy…" autocomplete="off" />
-        <button class="btn-primary" onclick="saveKey()">Save Key</button>
-      </div>
-      <div class="error-line"   id="key-error"></div>
-      <div class="success-line" id="key-success"></div>
-      <div class="model-row">
-        <label style="font-family:'DM Mono',monospace;font-size:0.72rem;color:var(--muted);white-space:nowrap;letter-spacing:0.04em;">MODEL</label>
-        <select id="model-select">
-          <option value="gemini-2.5-flash-lite" selected>gemini-2.5-flash-lite — fastest, most generous free tier (recommended)</option>
-          <option value="gemini-2.5-flash">gemini-2.5-flash — more capable, free tier available</option>
-          <option value="gemini-2.5-pro">gemini-2.5-pro — most capable, limited free quota</option>
-        </select>
+      <div class="transfer-note" id="transfer-note">✓ Values carried over from Value Estimator — edit freely</div>
+      <div class="compact-grid">
+        <div class="compact-field">
+          <label>Hourly Wage</label>
+          <div class="input-prefix-wrap">
+            <span class="input-prefix">$/hr</span>
+            <input type="number" id="p-wage" value="15" min="7.25" max="50" step="0.25" oninput="recalcPortfolio()" />
+          </div>
+          <span class="hint">What you earn (or would earn) per hour.</span>
+        </div>
+        <div class="compact-field">
+          <label>Marginal Tax Rate</label>
+          <div class="input-prefix-wrap">
+            <span class="input-prefix">%</span>
+            <input type="number" id="p-tax" value="12" min="0" max="40" step="1" oninput="recalcPortfolio()" />
+          </div>
+          <span class="hint">Most college students: 10–22%. Unsure? Use 12%.</span>
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- STEP 2: STUDENT PROFILE -->
+  <!-- SCHOLARSHIP TABLE -->
   <div class="panel">
     <div class="panel-header">
       <span class="step-badge">STEP 2</span>
-      <h2>Your Student Profile</h2>
+      <h2>Your Scholarship List</h2>
     </div>
     <div class="panel-body">
-      <div class="form-grid">
-        <div class="field">
-          <label>Class Year</label>
-          <select id="profile-year">
-            <option value="">Select…</option>
-            <option>Incoming Freshman</option>
-            <option>Freshman (1st year)</option>
-            <option>Sophomore (2nd year)</option>
-            <option>Junior (3rd year)</option>
-            <option>Senior (4th/5th year)</option>
-            <option>Graduate Student</option>
-          </select>
-        </div>
-        <div class="field">
-          <label>Enrollment Status</label>
-          <select id="profile-enrollment">
-            <option value="">Select…</option>
-            <option>Full-time</option>
-            <option>Part-time</option>
-          </select>
-        </div>
-        <div class="field">
-          <label>Major(s)</label>
-          <input type="text" id="profile-major" placeholder="e.g. Elementary Education" />
-          <span class="hint">List all majors, minors, or concentrations.</span>
-        </div>
-        <div class="field">
-          <label>GPA</label>
-          <input type="number" id="profile-gpa" placeholder="3.5" min="0" max="4.0" step="0.01" />
-          <span class="hint">Leave blank if you'd rather not include it.</span>
-        </div>
-        <div class="field">
-          <label>Financial Need</label>
-          <select id="profile-need">
-            <option value="">Prefer not to say</option>
-            <option>Yes — I have demonstrated financial need</option>
-            <option>No — I do not have financial need</option>
-          </select>
-          <span class="hint">Used only to assess need-based eligibility.</span>
-        </div>
-        <div class="field">
-          <label>Additional Notes <span style="font-weight:400;text-transform:none;letter-spacing:0;">(optional)</span></label>
-          <input type="text" id="profile-notes" placeholder="e.g. first-generation student, transfer…" />
-          <span class="hint">Anything else relevant to eligibility.</span>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- STEP 3: URLS -->
-  <div class="panel">
-    <div class="panel-header">
-      <span class="step-badge">STEP 3</span>
-      <h2>Scholarship URLs</h2>
-    </div>
-    <div class="panel-body">
-      <p style="font-size:0.85rem;color:var(--muted);margin-bottom:16px;line-height:1.55;">
-        Paste links to individual scholarship pages — any source works (college foundation sites, AcademicWorks, Fastweb, etc.).
-        Analyze 1–4 at a time.
+      <p style="font-size:0.84rem;color:var(--muted);line-height:1.55;margin-bottom:16px;">
+        Add each scholarship you're considering. Fill in what you know — estimates are fine.
+        The "Effective Rate" column updates as you type.
       </p>
-      <div class="url-slots">
-        <div class="url-slot"><span class="slot-num">1</span><input type="text" class="schol-url" placeholder="https://…" /></div>
-        <div class="url-slot"><span class="slot-num">2</span><input type="text" class="schol-url" placeholder="https://…" /></div>
-        <div class="url-slot"><span class="slot-num">3</span><input type="text" class="schol-url" placeholder="https://…" /></div>
-        <div class="url-slot"><span class="slot-num">4</span><input type="text" class="schol-url" placeholder="https://…" /></div>
+      <div class="schol-table-wrap">
+        <table class="schol-table" id="schol-table">
+          <thead>
+            <tr>
+              <th class="col-name">Scholarship Name</th>
+              <th class="col-amount">Amount ($)</th>
+              <th class="col-hours">Hours</th>
+              <th class="col-rate">Win Rate (%)</th>
+              <th class="col-result">Eff. Rate/hr</th>
+              <th class="col-del"></th>
+            </tr>
+          </thead>
+          <tbody id="schol-tbody">
+            <!-- rows injected by JS -->
+          </tbody>
+        </table>
       </div>
-      <div class="error-line" id="analyze-error"></div>
-      <div class="btn-row" style="margin-top:16px;">
-        <button class="btn-accent" id="analyze-btn" onclick="analyzeAll()" disabled>Analyze Scholarships</button>
-        <button class="btn-ghost"  onclick="clearAnalyzer()">Clear</button>
+      <div class="btn-row" style="margin-top:14px;">
+        <button class="btn-primary add-row-btn" onclick="addRow()">+ Add Scholarship</button>
+        <button class="btn-ghost add-row-btn" onclick="clearTable()">Clear All</button>
+      </div>
+      <div class="explainer" style="margin-top:14px;">
+        <strong>Tip on hours:</strong> Quick applications (short form, no essay) usually take 1–3 hours.
+        Mid-range scholarships with one essay: 4–8 hours. Competitive awards with multiple essays and references: 10–20+ hours.
+        Be honest — overestimating your speed leads to overestimating your return.
       </div>
     </div>
   </div>
 
-  <!-- RESULTS -->
-  <div id="analyzer-results" style="display:none;">
-    <div class="section-label" style="margin-bottom:12px;">Analysis Results</div>
-    <div class="schol-results" id="schol-results-container"></div>
+  <!-- PORTFOLIO SUMMARY -->
+  <div class="panel" id="portfolio-summary-panel">
+    <div class="panel-header">
+      <span class="results-badge">SUMMARY</span>
+      <h2>Portfolio Overview</h2>
+    </div>
+    <div class="panel-body">
+
+      <div class="section-label">Overall Numbers</div>
+      <div class="portfolio-grid">
+        <div class="port-card">
+          <div class="port-label">Scholarships in Plan</div>
+          <div class="port-value" id="p-count">—</div>
+          <div class="port-sub" id="p-total-possible">—</div>
+        </div>
+        <div class="port-card highlight">
+          <div class="port-label">Expected Winnings</div>
+          <div class="port-value green" id="p-expected">—</div>
+          <div class="port-sub" id="p-expected-sub">—</div>
+        </div>
+        <div class="port-card">
+          <div class="port-label">Total Hours</div>
+          <div class="port-value" id="p-hours">—</div>
+          <div class="port-sub">Across all applications.</div>
+        </div>
+        <div class="port-card highlight">
+          <div class="port-label">Blended Effective Rate</div>
+          <div class="port-value green" id="p-blended-rate">—</div>
+          <div class="port-sub" id="p-blended-sub">—</div>
+        </div>
+        <div class="port-card">
+          <div class="port-label">Your After-Tax Wage</div>
+          <div class="port-value" id="p-after-tax">—</div>
+          <div class="port-sub" id="p-after-tax-sub">—</div>
+        </div>
+        <div class="port-card">
+          <div class="port-label">Equiv. Work Hours</div>
+          <div class="port-value" id="p-work-hours">—</div>
+          <div class="port-sub" id="p-work-hours-sub">—</div>
+        </div>
+      </div>
+
+      <hr class="section-divider" />
+
+      <div id="portfolio-verdict" class="verdict-box neutral">
+        <div class="verdict-icon" id="p-verdict-icon">📊</div>
+        <div class="verdict-text">
+          <div class="verdict-title" id="p-verdict-title">—</div>
+          <div class="verdict-desc"  id="p-verdict-desc">—</div>
+        </div>
+      </div>
+
+      <hr class="section-divider" />
+
+      <div class="section-label">Breakdown by Scholarship</div>
+      <div class="schol-table-wrap">
+        <table class="breakdown-table" id="breakdown-table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Amount</th>
+              <th>Hours</th>
+              <th>Win Rate</th>
+              <th>Expected Value</th>
+              <th>Eff. Rate/hr</th>
+            </tr>
+          </thead>
+          <tbody id="breakdown-tbody"></tbody>
+          <tfoot id="breakdown-foot"></tfoot>
+        </table>
+      </div>
+
+      <div class="btn-row" style="margin-top:16px;">
+        <button class="btn-ghost" onclick="copyPortfolioResults()">📋 Copy Summary</button>
+        <span class="copy-confirm" id="p-copy-confirm">✓ Copied!</span>
+      </div>
+
+    </div>
   </div>
 
 </main>
-</div><!-- /tab-analyzer -->
+</div><!-- /tab-portfolio -->
 
 
 <script>
-// ─── TAB SWITCHING ──────────────────────────────────────────────────
+// ════════════════════════════════════════════════════════
+//  SHARED HELPERS
+// ════════════════════════════════════════════════════════
+function fmt(n)    { return '$' + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+function fmtHrs(n) { return n.toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + ' hrs'; }
+function fmtRate(n){ return fmt(n) + '/hr'; }
+
+function rateClass(rate, afterTaxWage) {
+  const ratio = rate / afterTaxWage;
+  if (ratio >= 1.1) return 'good';
+  if (ratio >= 0.85) return 'medium';
+  return 'bad';
+}
+
+// ════════════════════════════════════════════════════════
+//  TAB SWITCHING
+// ════════════════════════════════════════════════════════
 function switchTab(name) {
   document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
   document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
   document.getElementById('tab-' + name).classList.add('active');
   document.getElementById('tab-btn-' + name).classList.add('active');
+
+  if (name === 'portfolio') {
+    // Carry wage and tax from Tab 1 into Tab 2
+    const wage = parseFloat(document.getElementById('sl-wage').value);
+    const tax  = parseFloat(document.getElementById('sl-tax').value);
+    document.getElementById('p-wage').value = wage;
+    document.getElementById('p-tax').value  = tax;
+    document.getElementById('transfer-note').style.display = 'inline-block';
+    recalcPortfolio();
+  }
 }
 
-// ─── FORMAT HELPERS ─────────────────────────────────────────────────
-function fmt(n) {
-  return '$' + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+// ════════════════════════════════════════════════════════
+//  TAB 1 — SLIDERS
+// ════════════════════════════════════════════════════════
+const DEFAULTS = { amount: 1000, hours: 10, success: 20, wage: 15, tax: 12 };
+const sliderIds = { amount: 'sl-amount', hours: 'sl-hours', success: 'sl-success', wage: 'sl-wage', tax: 'sl-tax' };
+const numberIds  = { amount: 'num-amount', hours: 'num-hours', success: 'num-success', wage: 'num-wage', tax: 'num-tax' };
+
+function getSlider(f) { return document.getElementById(sliderIds[f]); }
+function getNumber(f) { return document.getElementById(numberIds[f]); }
+
+function syncFromSlider(f) {
+  getNumber(f).value = getSlider(f).value;
+  calculate();
 }
-function fmtHrs(n) {
-  return n.toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + ' hrs';
+function syncFromNumber(f) {
+  const num = getNumber(f), sl = getSlider(f);
+  let v = parseFloat(num.value);
+  if (isNaN(v)) return;
+  v = Math.max(parseFloat(sl.min), Math.min(parseFloat(sl.max), v));
+  num.value = v; sl.value = v;
+  calculate();
 }
 
-// ─── TAB 1: CALCULATE ───────────────────────────────────────────────
+['amount','hours','success','wage','tax'].forEach(f => {
+  getNumber(f).addEventListener('input',  () => syncFromNumber(f));
+  getNumber(f).addEventListener('change', () => syncFromNumber(f));
+});
+
+function resetDefaults() {
+  ['amount','hours','success','wage','tax'].forEach(f => {
+    getSlider(f).value = DEFAULTS[f];
+    getNumber(f).value = DEFAULTS[f];
+  });
+  calculate();
+}
+
+function toggleRateGuide(btn) {
+  const body  = document.getElementById('rate-guide-body');
+  const arrow = document.getElementById('rate-guide-arrow');
+  const open  = body.classList.toggle('open');
+  arrow.textContent = open ? '▴' : '▾';
+}
+
+// ════════════════════════════════════════════════════════
+//  TAB 1 — CALCULATE
+// ════════════════════════════════════════════════════════
 function calculate() {
-  const errEl = document.getElementById('error-line');
-  errEl.textContent = '';
-
-  const amount     = parseFloat(document.getElementById('scholarship-amount').value);
-  const hours      = parseFloat(document.getElementById('hours-applying').value);
-  const successPct = parseFloat(document.getElementById('success-rate').value);
-  const wage       = parseFloat(document.getElementById('hourly-wage').value);
-  const taxPct     = parseFloat(document.getElementById('tax-rate').value);
-
-  if (isNaN(amount) || amount <= 0)                             { errEl.textContent = 'Enter a scholarship amount greater than $0.'; return; }
-  if (isNaN(hours) || hours <= 0)                               { errEl.textContent = 'Enter hours spent applying (must be > 0).'; return; }
-  if (isNaN(successPct) || successPct <= 0 || successPct > 100) { errEl.textContent = 'Success rate must be between 1% and 100%.'; return; }
-  if (isNaN(wage) || wage <= 0)                                 { errEl.textContent = 'Enter your hourly wage.'; return; }
-  if (isNaN(taxPct) || taxPct < 0 || taxPct >= 100)            { errEl.textContent = 'Tax rate must be between 0% and 99%.'; return; }
+  const amount     = parseFloat(getSlider('amount').value);
+  const hours      = parseFloat(getSlider('hours').value);
+  const successPct = parseFloat(getSlider('success').value);
+  const wage       = parseFloat(getSlider('wage').value);
+  const taxPct     = parseFloat(getSlider('tax').value);
+  if (!amount || !hours || !successPct || !wage) return;
 
   const successRate    = successPct / 100;
-  const taxRate        = taxPct / 100;
+  const taxRate        = taxPct    / 100;
   const monetaryTarget = amount / successRate;
   const awardPerHour   = amount / hours;
   const taxEquivalent  = amount / (1 - taxRate);
@@ -611,302 +849,302 @@ function calculate() {
   document.getElementById('res-amount').textContent               = fmt(amount);
   document.getElementById('res-target').textContent               = fmt(monetaryTarget);
   document.getElementById('res-target-sub').textContent           = `Apply for ${fmt(monetaryTarget)} total to expect ${fmt(amount)} in awards at a ${successPct}% win rate.`;
-  document.getElementById('res-scholarship-rate').textContent     = fmt(awardPerHour) + '/hr';
-  document.getElementById('res-scholarship-rate-sub').textContent = `${fmt(amount)} award ÷ ${hours} hrs applying. Tax-free.`;
+  document.getElementById('res-scholarship-rate').textContent     = fmtRate(awardPerHour);
+  document.getElementById('res-scholarship-rate-sub').textContent = `${fmt(amount)} award ÷ ${hours} hrs. Tax-free.`;
   document.getElementById('res-equiv').textContent                = fmt(taxEquivalent);
   document.getElementById('res-equiv-sub').textContent            = `Pre-tax wages needed to net ${fmt(amount)} after ${taxPct}% taxes.`;
-  document.getElementById('res-after-tax-wage').textContent       = fmt(afterTaxWage) + '/hr';
+  document.getElementById('res-after-tax-wage').textContent       = fmtRate(afterTaxWage);
   document.getElementById('res-after-tax-wage-sub').textContent   = `${fmt(wage)}/hr × (1 − ${taxPct}%) = ${fmt(afterTaxWage)}/hr in your pocket.`;
   document.getElementById('res-hours-to-match').textContent       = fmtHrs(hoursToMatch);
   document.getElementById('res-hours-to-match-sub').textContent   = `Work ${fmtHrs(hoursToMatch)} to take home ${fmt(amount)} after taxes.`;
 
-  const vBox  = document.getElementById('verdict-box');
+  const vBox = document.getElementById('verdict-box');
   const vIcon = document.getElementById('verdict-icon');
-  const vTitle= document.getElementById('verdict-title');
-  const vDesc = document.getElementById('verdict-desc');
+  const vTitle = document.getElementById('verdict-title');
+  const vDesc  = document.getElementById('verdict-desc');
   vBox.className = 'verdict-box';
   const ratio = awardPerHour / afterTaxWage;
 
-  if (ratio >= 2) {
-    vBox.classList.add('good'); vIcon.textContent = '🏆';
-    vTitle.textContent = 'Applying is significantly more valuable than working';
-    vDesc.textContent  = `Your scholarship effective rate (${fmt(awardPerHour)}/hr) is ${ratio.toFixed(1)}× your after-tax wage (${fmt(afterTaxWage)}/hr). Every hour on applications is worth far more than an hour on the job.`;
-  } else if (ratio >= 1.1) {
-    vBox.classList.add('good'); vIcon.textContent = '✅';
-    vTitle.textContent = 'Applying is more valuable than working';
-    vDesc.textContent  = `Your scholarship effective rate (${fmt(awardPerHour)}/hr) beats your after-tax wage (${fmt(afterTaxWage)}/hr). The tax-free nature of scholarships makes this better than earning the same amount at a job.`;
-  } else if (ratio >= 0.85) {
-    vBox.classList.add('neutral'); vIcon.textContent = '⚖️';
-    vTitle.textContent = 'About a wash — other factors may decide it';
-    vDesc.textContent  = `Your scholarship effective rate (${fmt(awardPerHour)}/hr) is close to your after-tax wage (${fmt(afterTaxWage)}/hr). Consider non-financial factors: awards can look good on a résumé and may open doors.`;
-  } else {
-    vBox.classList.add('bad'); vIcon.textContent = '⚠️';
-    vTitle.textContent = 'Working may be a better use of your time';
-    vDesc.textContent  = `Your scholarship effective rate (${fmt(awardPerHour)}/hr) is below your after-tax wage (${fmt(afterTaxWage)}/hr). Consider applying for larger scholarships or targeting ones where you're a stronger fit.`;
-  }
-
-  const panel = document.getElementById('results-panel');
-  panel.style.display = 'block';
-  panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  if (ratio >= 2)    { vBox.classList.add('good');    vIcon.textContent = '🏆'; vTitle.textContent = 'Applying is significantly more valuable than working'; vDesc.textContent = `Your scholarship effective rate (${fmtRate(awardPerHour)}) is ${ratio.toFixed(1)}× your after-tax wage (${fmtRate(afterTaxWage)}). Every hour on applications is worth far more than an hour on the job.`; }
+  else if (ratio >= 1.1) { vBox.classList.add('good'); vIcon.textContent = '✅'; vTitle.textContent = 'Applying is more valuable than working'; vDesc.textContent = `Your scholarship effective rate (${fmtRate(awardPerHour)}) beats your after-tax wage (${fmtRate(afterTaxWage)}). The tax-free nature of scholarships makes this better than earning the same amount at a job.`; }
+  else if (ratio >= 0.85) { vBox.classList.add('neutral'); vIcon.textContent = '⚖️'; vTitle.textContent = 'About a wash — other factors may decide it'; vDesc.textContent = `Your scholarship effective rate (${fmtRate(awardPerHour)}) is close to your after-tax wage (${fmtRate(afterTaxWage)}). Consider non-financial factors: awards can look good on a résumé and may open other doors.`; }
+  else { vBox.classList.add('bad'); vIcon.textContent = '⚠️'; vTitle.textContent = 'Working may be a better use of your time'; vDesc.textContent = `Your scholarship effective rate (${fmtRate(awardPerHour)}) is below your after-tax wage (${fmtRate(afterTaxWage)}). Consider applying for larger scholarships or targeting ones where you're a stronger fit.`; }
 }
 
-function resetForm() {
-  ['scholarship-amount','hours-applying','success-rate','hourly-wage','tax-rate'].forEach(id => {
-    document.getElementById(id).value = '';
+// ════════════════════════════════════════════════════════
+//  TAB 1 — COPY RESULTS
+// ════════════════════════════════════════════════════════
+function copyResults() {
+  const amount     = parseFloat(getSlider('amount').value);
+  const hours      = parseFloat(getSlider('hours').value);
+  const successPct = parseFloat(getSlider('success').value);
+  const wage       = parseFloat(getSlider('wage').value);
+  const taxPct     = parseFloat(getSlider('tax').value);
+  const taxRate     = taxPct / 100;
+  const awardPerHour = amount / hours;
+  const afterTaxWage = wage * (1 - taxRate);
+  const taxEquiv     = amount / (1 - taxRate);
+  const hoursToMatch = taxEquiv / wage;
+  const monetaryTarget = amount / (successPct / 100);
+
+  const text = [
+    'SCHOLARSHIP VALUE ESTIMATOR — Results',
+    '─────────────────────────────────────',
+    `Scholarship Amount:       ${fmt(amount)}`,
+    `Hours Spent Applying:     ${hours} hrs`,
+    `Expected Win Rate:        ${successPct}%`,
+    `Total to Apply For:       ${fmt(monetaryTarget)}`,
+    '',
+    `Effective Hourly Rate:    ${fmtRate(awardPerHour)} (tax-free)`,
+    `Tax-Equivalent Value:     ${fmt(taxEquiv)}`,
+    '',
+    `Your Hourly Wage:         ${fmt(wage)}/hr`,
+    `After-Tax Wage:           ${fmtRate(afterTaxWage)}`,
+    `Hours of Work to Match:   ${fmtHrs(hoursToMatch)}`,
+    '',
+    `Verdict: ${document.getElementById('verdict-title').textContent}`,
+    document.getElementById('verdict-desc').textContent,
+  ].join('\n');
+
+  navigator.clipboard.writeText(text).then(() => {
+    const el = document.getElementById('copy-confirm');
+    el.classList.add('show');
+    setTimeout(() => el.classList.remove('show'), 2000);
   });
-  document.getElementById('error-line').textContent = '';
-  document.getElementById('results-panel').style.display = 'none';
 }
 
-// Pre-fill estimator from analyzer result
-function sendToEstimator(amount) {
-  document.getElementById('scholarship-amount').value = amount;
-  switchTab('estimator');
-  setTimeout(() => {
-    document.getElementById('scholarship-amount').scrollIntoView({ behavior: 'smooth', block: 'center' });
-  }, 150);
+// ════════════════════════════════════════════════════════
+//  TAB 2 — PORTFOLIO TABLE
+// ════════════════════════════════════════════════════════
+let rowId = 0;
+
+const STARTER_ROWS = [
+  { name: 'Example: Dept. Scholarship', amount: 500,  hours: 3,  rate: 35 },
+  { name: 'Example: University Award',  amount: 1000, hours: 6,  rate: 20 },
+  { name: 'Example: Community Grant',   amount: 750,  hours: 5,  rate: 25 },
+];
+
+function addRow(data = {}) {
+  const id     = rowId++;
+  const name   = data.name   || '';
+  const amount = data.amount || '';
+  const hours  = data.hours  || '';
+  const rate   = data.rate   || '';
+
+  const tbody = document.getElementById('schol-tbody');
+  const tr = document.createElement('tr');
+  tr.id = `row-${id}`;
+  tr.innerHTML = `
+    <td class="col-name">
+      <input type="text" placeholder="Scholarship name (optional)" value="${name}"
+        oninput="recalcPortfolio()" />
+    </td>
+    <td class="col-amount">
+      <input type="number" placeholder="1000" min="0" step="50" value="${amount}"
+        oninput="recalcPortfolio()" />
+    </td>
+    <td class="col-hours">
+      <input type="number" placeholder="5" min="0.5" step="0.5" value="${hours}"
+        oninput="recalcPortfolio()" />
+    </td>
+    <td class="col-rate">
+      <input type="number" placeholder="20" min="1" max="100" step="1" value="${rate}"
+        oninput="recalcPortfolio()" />
+    </td>
+    <td class="col-result" id="eff-${id}">—</td>
+    <td class="col-del"><button class="del-btn" onclick="deleteRow(${id})" title="Remove">✕</button></td>
+  `;
+  tbody.appendChild(tr);
+  recalcPortfolio();
 }
 
-// ─── TAB 2: API KEY ─────────────────────────────────────────────────
-let apiKey = '';
-
-function saveKey() {
-  const input = document.getElementById('api-key-input');
-  const val   = input.value.trim();
-  const errEl = document.getElementById('key-error');
-  const okEl  = document.getElementById('key-success');
-  errEl.textContent = '';
-  okEl.textContent  = '';
-  if (!val)                    { errEl.textContent = 'Please paste your API key.'; return; }
-  if (!val.startsWith('AIza')) { errEl.textContent = 'Key should start with "AIza". Copy it directly from Google AI Studio.'; return; }
-  if (val.length < 20)         { errEl.textContent = 'That key looks too short — make sure you copied the full key.'; return; }
-  apiKey = val;
-  input.value = '●'.repeat(16);
-  okEl.textContent = '✓ Key saved.';
-  checkReady();
+function deleteRow(id) {
+  const tr = document.getElementById(`row-${id}`);
+  if (tr) tr.remove();
+  recalcPortfolio();
 }
 
-function checkReady() {
-  const hasKey = apiKey.length > 0;
-  const hasUrl = [...document.querySelectorAll('.schol-url')].some(i => i.value.trim().startsWith('http'));
-  document.getElementById('analyze-btn').disabled = !(hasKey && hasUrl);
+function clearTable() {
+  document.getElementById('schol-tbody').innerHTML = '';
+  recalcPortfolio();
 }
 
-document.querySelectorAll('.schol-url').forEach(inp => inp.addEventListener('input', checkReady));
-
-// ─── TAB 2: FETCH PAGE TEXT ─────────────────────────────────────────
-async function fetchPageText(url) {
-  const proxy = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
-  const res   = await fetch(proxy);
-  if (!res.ok) throw new Error(`Could not fetch the page (HTTP ${res.status}).`);
-  const data  = await res.json();
-  if (!data.contents) throw new Error('No content returned from the page.');
-  const text = data.contents
-    .replace(/<script[\s\S]*?<\/script>/gi, '')
-    .replace(/<style[\s\S]*?<\/style>/gi, '')
-    .replace(/<[^>]+>/g, ' ')
-    .replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&nbsp;/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim();
-  return text.slice(0, 8000);
-}
-
-// ─── TAB 2: STUDENT PROFILE BUILDER ────────────────────────────────
-function buildProfile() {
-  const parts = [];
-  const year       = document.getElementById('profile-year').value;
-  const enrollment = document.getElementById('profile-enrollment').value;
-  const major      = document.getElementById('profile-major').value.trim();
-  const gpa        = document.getElementById('profile-gpa').value.trim();
-  const need       = document.getElementById('profile-need').value;
-  const notes      = document.getElementById('profile-notes').value.trim();
-  if (year)       parts.push(`Class year: ${year}`);
-  if (enrollment) parts.push(`Enrollment: ${enrollment}`);
-  if (major)      parts.push(`Major/minor/concentration: ${major}`);
-  if (gpa)        parts.push(`GPA: ${gpa}`);
-  if (need && need !== 'Prefer not to say') parts.push(`Financial need: ${need}`);
-  if (notes)      parts.push(`Additional: ${notes}`);
-  return parts.length ? parts.join('\n') : 'No profile information provided.';
-}
-
-// ─── TAB 2: GEMINI CALL ─────────────────────────────────────────────
-async function callGemini(prompt) {
-  const { GoogleGenerativeAI } = await import('https://esm.run/@google/generative-ai');
-  const genAI = new GoogleGenerativeAI(apiKey);
-  const model = genAI.getGenerativeModel({
-    model: document.getElementById('model-select').value,
-    generationConfig: { temperature: 0.2, maxOutputTokens: 1200 }
+function getRows() {
+  const rows = [];
+  document.querySelectorAll('#schol-tbody tr').forEach(tr => {
+    const inputs = tr.querySelectorAll('input');
+    const name   = inputs[0].value.trim() || 'Unnamed';
+    const amount = parseFloat(inputs[1].value);
+    const hours  = parseFloat(inputs[2].value);
+    const rate   = parseFloat(inputs[3].value);
+    const id     = tr.id.replace('row-', '');
+    rows.push({ id, name, amount, hours, rate });
   });
-  const result = await model.generateContent({ contents: [{ role: 'user', parts: [{ text: prompt }] }] });
-  const text = result.response.text();
-  if (!text) throw new Error('Empty response from Gemini.');
-  return text;
+  return rows;
 }
 
-// ─── TAB 2: ANALYZE ALL ─────────────────────────────────────────────
-async function analyzeAll() {
-  const urls = [...document.querySelectorAll('.schol-url')]
-    .map(i => i.value.trim())
-    .filter(u => u.startsWith('http'));
+// ════════════════════════════════════════════════════════
+//  TAB 2 — RECALCULATE
+// ════════════════════════════════════════════════════════
+function recalcPortfolio() {
+  const wage   = parseFloat(document.getElementById('p-wage').value) || 15;
+  const taxPct = parseFloat(document.getElementById('p-tax').value)  || 12;
+  const taxRate     = taxPct / 100;
+  const afterTaxWage = wage * (1 - taxRate);
 
-  if (urls.length === 0) {
-    document.getElementById('analyze-error').textContent = 'Enter at least one scholarship URL starting with https://';
+  const rows = getRows();
+  const validRows = rows.filter(r => r.amount > 0 && r.hours > 0 && r.rate > 0);
+
+  // Update per-row effective rate cells
+  rows.forEach(r => {
+    const cell = document.getElementById(`eff-${r.id}`);
+    if (!cell) return;
+    if (r.amount > 0 && r.hours > 0) {
+      const effRate = r.amount / r.hours;
+      const cls = rateClass(effRate, afterTaxWage);
+      cell.textContent = fmtRate(effRate);
+      cell.className = 'col-result ' + cls;
+    } else {
+      cell.textContent = '—';
+      cell.className = 'col-result';
+    }
+  });
+
+  // Summary
+  if (validRows.length === 0) {
+    document.getElementById('p-count').textContent         = '0';
+    document.getElementById('p-total-possible').textContent = '—';
+    document.getElementById('p-expected').textContent      = '—';
+    document.getElementById('p-expected-sub').textContent  = '';
+    document.getElementById('p-hours').textContent         = '—';
+    document.getElementById('p-blended-rate').textContent  = '—';
+    document.getElementById('p-blended-sub').textContent   = '';
+    document.getElementById('p-after-tax').textContent     = fmtRate(afterTaxWage);
+    document.getElementById('p-after-tax-sub').textContent = `${fmt(wage)}/hr after ${taxPct}% taxes.`;
+    document.getElementById('p-work-hours').textContent    = '—';
+    document.getElementById('p-work-hours-sub').textContent = '';
+    document.getElementById('breakdown-tbody').innerHTML   = '';
+    document.getElementById('breakdown-foot').innerHTML    = '';
+    document.getElementById('portfolio-verdict').className = 'verdict-box neutral';
+    document.getElementById('p-verdict-icon').textContent  = '📊';
+    document.getElementById('p-verdict-title').textContent = 'Add scholarships above to see your portfolio summary.';
+    document.getElementById('p-verdict-desc').textContent  = '';
     return;
   }
-  document.getElementById('analyze-error').textContent = '';
-  document.getElementById('analyze-btn').disabled = true;
 
-  const container = document.getElementById('schol-results-container');
-  container.innerHTML = '';
-  const resultsSection = document.getElementById('analyzer-results');
-  resultsSection.style.display = 'block';
-  resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  const totalPossible = validRows.reduce((s, r) => s + r.amount, 0);
+  const totalExpected = validRows.reduce((s, r) => s + r.amount * (r.rate / 100), 0);
+  const totalHours    = validRows.reduce((s, r) => s + r.hours, 0);
+  const blendedRate   = totalExpected / totalHours;
+  const taxEquivTotal = totalExpected / (1 - taxRate);
+  const hoursToMatch  = taxEquivTotal / wage;
 
-  const profile = buildProfile();
+  document.getElementById('p-count').textContent          = validRows.length;
+  document.getElementById('p-total-possible').textContent = `Up to ${fmt(totalPossible)} if you win everything.`;
+  document.getElementById('p-expected').textContent       = fmt(totalExpected);
+  document.getElementById('p-expected-sub').textContent   = `Based on your estimated win rates.`;
+  document.getElementById('p-hours').textContent          = fmtHrs(totalHours);
+  document.getElementById('p-blended-rate').textContent   = fmtRate(blendedRate);
+  document.getElementById('p-blended-sub').textContent    = `Expected winnings ÷ total hours across all applications.`;
+  document.getElementById('p-after-tax').textContent      = fmtRate(afterTaxWage);
+  document.getElementById('p-after-tax-sub').textContent  = `${fmt(wage)}/hr after ${taxPct}% taxes.`;
+  document.getElementById('p-work-hours').textContent     = fmtHrs(hoursToMatch);
+  document.getElementById('p-work-hours-sub').textContent = `Job hours to take home ${fmt(totalExpected)} after taxes.`;
 
-  // Render loading placeholders
-  urls.forEach((url, i) => {
-    const card = document.createElement('div');
-    card.className = 'schol-card loading';
-    card.id = `schol-card-${i}`;
-    card.innerHTML = `
-      <div class="schol-card-header">
-        <div class="schol-card-title" style="color:var(--muted);font-style:italic;font-weight:400;">
-          Fetching scholarship ${i + 1}…
-        </div>
-      </div>
-      <div class="schol-card-body">
-        <div class="dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
-      </div>`;
-    container.appendChild(card);
+  // Verdict
+  const pVBox  = document.getElementById('portfolio-verdict');
+  const pVIcon = document.getElementById('p-verdict-icon');
+  const pVTitle= document.getElementById('p-verdict-title');
+  const pVDesc = document.getElementById('p-verdict-desc');
+  pVBox.className = 'verdict-box';
+  const ratio = blendedRate / afterTaxWage;
+
+  if (ratio >= 2)         { pVBox.classList.add('good');    pVIcon.textContent = '🏆'; pVTitle.textContent = 'Excellent portfolio — your time is very well spent'; pVDesc.textContent = `Your blended rate (${fmtRate(blendedRate)}) is ${ratio.toFixed(1)}× your after-tax wage (${fmtRate(afterTaxWage)}). This is a strong strategy. If you want to improve further, look for more scholarships with high amounts relative to the effort required.`; }
+  else if (ratio >= 1.1)  { pVBox.classList.add('good');    pVIcon.textContent = '✅'; pVTitle.textContent = 'Solid portfolio — scholarships beat working'; pVDesc.textContent = `Your blended rate (${fmtRate(blendedRate)}) is above your after-tax wage (${fmtRate(afterTaxWage)}). This strategy is working in your favor. Adding more high-value, high-probability scholarships will strengthen it further.`; }
+  else if (ratio >= 0.85) { pVBox.classList.add('neutral'); pVIcon.textContent = '⚖️'; pVTitle.textContent = 'Close call — consider adjusting your mix'; pVDesc.textContent = `Your blended rate (${fmtRate(blendedRate)}) is roughly equal to your after-tax wage (${fmtRate(afterTaxWage)}). Try replacing lower-value or low-probability scholarships with ones that offer a better return per hour. Non-financial benefits (recognition, résumé) may still tip the balance.`; }
+  else                    { pVBox.classList.add('bad');     pVIcon.textContent = '⚠️'; pVTitle.textContent = 'This portfolio may not be worth your time'; pVDesc.textContent = `Your blended rate (${fmtRate(blendedRate)}) is below your after-tax wage (${fmtRate(afterTaxWage)}). Consider swapping in larger scholarships, cutting ones that require many hours for modest awards, or targeting scholarships where you have a higher chance of winning.`; }
+
+  // Breakdown table
+  const tbody = document.getElementById('breakdown-tbody');
+  const tfoot = document.getElementById('breakdown-foot');
+  tbody.innerHTML = '';
+
+  validRows.forEach(r => {
+    const effRate  = r.amount / r.hours;
+    const expected = r.amount * (r.rate / 100);
+    const cls = rateClass(effRate, afterTaxWage);
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td class="td-name">${r.name}</td>
+      <td class="td-mono">${fmt(r.amount)}</td>
+      <td class="td-mono">${fmtHrs(r.hours)}</td>
+      <td class="td-mono">${r.rate}%</td>
+      <td class="td-mono">${fmt(expected)}</td>
+      <td class="td-${cls}">${fmtRate(effRate)}</td>
+    `;
+    tbody.appendChild(tr);
   });
 
-  await Promise.all(urls.map((url, i) => analyzeOne(url, i, profile)));
-  document.getElementById('analyze-btn').disabled = false;
-  checkReady();
-}
-
-async function analyzeOne(url, idx, profile) {
-  const card = document.getElementById(`schol-card-${idx}`);
-  try {
-    const pageText = await fetchPageText(url);
-
-    const prompt = `You are helping a college student decide whether to apply for a scholarship.
-
-SCHOLARSHIP PAGE TEXT (extracted from: ${url}):
----
-${pageText}
----
-
-STUDENT PROFILE:
-${profile}
-
-Your job: extract scholarship details and assess how well this student fits the eligibility requirements.
-
-Respond ONLY with valid JSON. No markdown, no code fences, no preamble. Use exactly this structure:
-{
-  "name": "Full scholarship name as written on the page",
-  "amount": "Dollar amount as written, e.g. '$1,000' or 'Varies'",
-  "amount_numeric": 1000,
-  "deadline": "Deadline date exactly as written on the page, or 'Not listed'",
-  "deadline_status": "upcoming",
-  "eligibility_summary": "2–3 sentence plain-English summary of who this scholarship is for and key requirements.",
-  "fit_score": 75,
-  "fit_label": "high",
-  "fit_explanation": "2–3 sentences explaining the match, referencing specific criteria from the scholarship and facts from the student profile.",
-  "missing_info": "Any criteria the student didn't provide info about, or 'None'"
-}
-
-Rules:
-- deadline_status must be one of: "upcoming" (within 60 days or already past), "future" (more than 60 days away), "unknown" (not listed)
-- fit_score is 0–100. fit_label: "high" = 70+, "medium" = 40–69, "low" = 0–39
-- amount_numeric: numeric best-guess (use 0 if genuinely unknown/varies)
-- Be honest about fit. If criteria clearly exclude the student, say so plainly.
-- If the page text doesn't contain a real scholarship, set name to "Could not read scholarship page" and fit_score to 0.`;
-
-    const raw   = await callGemini(prompt);
-    const clean = raw.replace(/```json\s*/gi, '').replace(/```/g, '').trim();
-    const data  = JSON.parse(clean);
-    renderCard(card, data, url);
-  } catch (err) {
-    card.className = 'schol-card error-card';
-    card.innerHTML = `
-      <div class="schol-card-header">
-        <div class="schol-card-title">Could not analyze this scholarship</div>
-      </div>
-      <div class="schol-card-body">
-        <div class="error-msg">${err.message}</div>
-        <div style="font-size:0.82rem;color:var(--muted);margin-top:8px;">
-          URL: <a href="${url}" target="_blank" style="color:var(--accent);word-break:break-all;">${url}</a>
-        </div>
-        <div style="font-size:0.8rem;color:var(--muted);margin-top:8px;font-style:italic;">
-          Some scholarship sites block automated access. Try opening the page in your browser to confirm the URL is correct.
-        </div>
-      </div>`;
-  }
-}
-
-function renderCard(card, data, url) {
-  card.className = 'schol-card';
-  const fitClass   = data.fit_label || 'medium';
-  const fillWidth  = Math.max(4, Math.min(100, data.fit_score || 0));
-  const amountText = (data.amount && data.amount !== 'Unknown') ? data.amount : 'Amount varies';
-
-  let dlClass = 'unknown';
-  if (data.deadline_status === 'upcoming') dlClass = 'upcoming';
-  if (data.deadline_status === 'future')   dlClass = 'future';
-  const dlText = (data.deadline && data.deadline !== 'Not listed')
-    ? `📅 ${data.deadline}`
-    : '📅 Deadline not listed';
-
-  card.innerHTML = `
-    <div class="schol-card-header">
-      <div class="schol-card-title">
-        <a href="${url}" target="_blank" style="color:var(--ink);text-decoration:none;border-bottom:1px dotted var(--border);">
-          ${data.name || 'Scholarship'}
-        </a>
-      </div>
-      <div class="schol-card-meta">
-        <span class="badge-amount">${amountText}</span>
-        <span class="badge-deadline ${dlClass}">${dlText}</span>
-      </div>
-    </div>
-    <div class="schol-card-body">
-      <div>
-        <div class="result-label" style="margin-bottom:6px;">Who It's For</div>
-        <div style="font-size:0.84rem;line-height:1.6;color:var(--muted);font-style:italic;">${data.eligibility_summary || '—'}</div>
-      </div>
-      <div>
-        <div class="fit-bar-wrap">
-          <span class="fit-label">Your Fit</span>
-          <div class="fit-bar-track">
-            <div class="fit-bar-fill ${fitClass}" style="width:${fillWidth}%"></div>
-          </div>
-          <span class="fit-pct ${fitClass}">${data.fit_score || 0}%</span>
-        </div>
-      </div>
-      <div class="schol-analysis">
-        <p>${data.fit_explanation || '—'}</p>
-        ${(data.missing_info && data.missing_info !== 'None')
-          ? `<p style="color:var(--muted);font-style:italic;font-size:0.8rem;margin-top:4px;">⚠ Couldn't fully assess: ${data.missing_info}</p>`
-          : ''}
-      </div>
-    </div>
-    ${data.amount_numeric > 0 ? `
-    <div class="schol-card-footer">
-      <span class="send-note">Send this amount to the Value Estimator</span>
-      <button class="btn-green" onclick="sendToEstimator(${data.amount_numeric})">→ Use in Estimator</button>
-    </div>` : ''}
+  tfoot.innerHTML = `
+    <tr>
+      <td><strong>Total / Blended</strong></td>
+      <td class="td-mono">${fmt(totalPossible)}</td>
+      <td class="td-mono">${fmtHrs(totalHours)}</td>
+      <td class="td-mono">—</td>
+      <td class="td-mono"><strong>${fmt(totalExpected)}</strong></td>
+      <td class="td-mono"><strong>${fmtRate(blendedRate)}</strong></td>
+    </tr>
   `;
 }
 
-function clearAnalyzer() {
-  document.querySelectorAll('.schol-url').forEach(i => i.value = '');
-  document.getElementById('analyze-error').textContent = '';
-  document.getElementById('analyzer-results').style.display = 'none';
-  document.getElementById('schol-results-container').innerHTML = '';
-  checkReady();
+// ════════════════════════════════════════════════════════
+//  TAB 2 — COPY SUMMARY
+// ════════════════════════════════════════════════════════
+function copyPortfolioResults() {
+  const wage       = parseFloat(document.getElementById('p-wage').value) || 15;
+  const taxPct     = parseFloat(document.getElementById('p-tax').value)  || 12;
+  const taxRate    = taxPct / 100;
+  const afterTaxWage = wage * (1 - taxRate);
+  const rows = getRows().filter(r => r.amount > 0 && r.hours > 0 && r.rate > 0);
+
+  if (rows.length === 0) return;
+
+  const totalExpected = rows.reduce((s, r) => s + r.amount * (r.rate / 100), 0);
+  const totalHours    = rows.reduce((s, r) => s + r.hours, 0);
+  const blendedRate   = totalExpected / totalHours;
+
+  const lines = [
+    'SCHOLARSHIP PORTFOLIO PLANNER — Summary',
+    '────────────────────────────────────────',
+    `Scholarships in Plan:   ${rows.length}`,
+    `Expected Winnings:      ${fmt(totalExpected)}`,
+    `Total Hours:            ${fmtHrs(totalHours)}`,
+    `Blended Effective Rate: ${fmtRate(blendedRate)}`,
+    `Your After-Tax Wage:    ${fmtRate(afterTaxWage)}`,
+    '',
+    'Breakdown:',
+    ...rows.map(r => {
+      const eff = r.amount / r.hours;
+      const exp = r.amount * (r.rate / 100);
+      return `  ${r.name}: ${fmt(r.amount)} × ${r.rate}% win rate, ${fmtHrs(r.hours)}, ${fmtRate(eff)} eff. rate, ${fmt(exp)} expected`;
+    }),
+    '',
+    `Verdict: ${document.getElementById('p-verdict-title').textContent}`,
+    document.getElementById('p-verdict-desc').textContent,
+  ].join('\n');
+
+  navigator.clipboard.writeText(lines).then(() => {
+    const el = document.getElementById('p-copy-confirm');
+    el.classList.add('show');
+    setTimeout(() => el.classList.remove('show'), 2000);
+  });
 }
+
+// ════════════════════════════════════════════════════════
+//  INIT
+// ════════════════════════════════════════════════════════
+calculate();
+STARTER_ROWS.forEach(r => addRow(r));
 </script>
 
 </body>
