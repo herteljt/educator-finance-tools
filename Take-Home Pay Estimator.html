@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Take-Home Pay Estimator · Educator Finance Tools</title>
+<meta name="tool-name" content="Take-Home Pay Estimator">
+<meta name="tool-description" content="Enter your salary and see estimated federal and Wisconsin taxes, FICA, WRS, health insurance, and more, per year, month, and paycheck.">
+<meta name="tool-icon" content="💵">
+<meta name="tool-tags" content="paycheck, take-home pay, taxes, WRS, salary, benefits">
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#1c1c2e;--paper:#f4f0e8;--cream:#ece7da;--white:#fff;--accent:#8b1a1a;--accent-light:#f0dede;--muted:#7a7262;--border:#d4cebe;--green:#2d5a3d;--green-light:#d8ece1;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;--ink:#ece7da;--paper:#16161f;--cream:#262633;--white:#1f1f2a;--accent:#d46a6a;--accent-light:#3a2224;--muted:#a39d8f;--border:#3b3b4c;--green:#7cc99b;--green-light:#1f3a2c}}
+:root[data-theme="dark"]{color-scheme:dark;--ink:#ece7da;--paper:#16161f;--cream:#262633;--white:#1f1f2a;--accent:#d46a6a;--accent-light:#3a2224;--muted:#a39d8f;--border:#3b3b4c;--green:#7cc99b;--green-light:#1f3a2c}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box;margin:0;padding:0}
+[hidden]{display:none!important}
+body{font-family:'Lora',Georgia,serif;background:var(--paper);color:var(--ink);min-height:100vh;display:flex;flex-direction:column}
+main{flex:1;display:flex;flex-direction:column;max-width:820px;width:100%;margin:0 auto;padding:28px 24px 60px;gap:20px}
+header{background:var(--ink);padding:14px 28px;display:flex;align-items:center;justify-content:space-between;border-bottom:3px solid var(--accent)}
+.header-left{display:flex;flex-direction:column;gap:2px}
+header h1{color:var(--paper);font-size:1.1rem;font-weight:600;letter-spacing:.02em}
+.subtitle{font-family:'DM Mono',monospace;font-size:.62rem;color:#8a8aa8;letter-spacing:.1em;text-transform:uppercase}
+.header-right{display:flex;align-items:center;gap:14px}
+.back-link{font-family:'DM Mono',monospace;font-size:.68rem;color:#8a8aa8;text-decoration:none;letter-spacing:.06em}
+.back-link:hover{color:var(--paper)}
+.panel{background:var(--white);border:1px solid var(--border);border-radius:4px;overflow:hidden}
+.panel-header{background:var(--cream);border-bottom:1px solid var(--border);padding:11px 20px;display:flex;align-items:center;gap:10px}
+.panel-header h2{font-size:.88rem;font-weight:600}
+.panel-body{padding:20px}
+.step-badge{font-family:'DM Mono',monospace;font-size:.62rem;background:var(--ink);color:var(--paper);padding:2px 8px;border-radius:2px;letter-spacing:.06em}
+button{font-family:'Lora',serif;font-size:.85rem;padding:10px 18px;border:none;border-radius:3px;cursor:pointer;white-space:nowrap}
+button:active{transform:scale(.98)}
+.btn-accent{background:var(--accent);color:#fff}
+.btn-accent:hover{opacity:.85}
+.btn-ghost{background:transparent;border:1px solid var(--border);color:var(--muted)}
+.btn-ghost:hover{border-color:var(--ink);color:var(--ink)}
+input[type=text],input[type=number],select{font-family:'DM Mono',monospace;font-size:.82rem;padding:10px 12px;border:1px solid var(--border);border-radius:3px;background:var(--paper);color:var(--ink);outline:none;width:100%}
+input:focus,select:focus{border-color:var(--ink)}
+.error-line{font-family:'DM Mono',monospace;font-size:.74rem;color:var(--accent);margin-top:8px;min-height:18px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.grid+.field,.field+.grid,.field+.field,.grid+.grid{margin-top:18px}
+.field{display:flex;flex-direction:column;gap:6px}
+.field>label{font-family:'DM Mono',monospace;font-size:.68rem;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
+.hint{font-size:.78rem;color:var(--muted);line-height:1.5;font-style:italic}
+.check-row{display:flex;align-items:center;gap:8px;font-size:.82rem;margin-top:4px}
+.check-row input{width:15px;height:15px;accent-color:var(--accent)}
+.note{font-size:.85rem;line-height:1.55;margin-bottom:16px}
+.divider{border:none;border-top:1px solid var(--border);margin:22px 0}
+.sub-title{font-size:.85rem;font-weight:600;margin-bottom:10px}
+.other-row{display:grid;grid-template-columns:2fr 1.2fr 1.2fr auto;gap:8px;margin-top:8px;align-items:center}
+.btns{display:flex;gap:10px;flex-wrap:wrap}
+.tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px}
+.tile{background:var(--paper);border:1px solid var(--border);border-radius:3px;padding:14px}
+.tile.main{background:var(--green-light);border-color:var(--green)}
+.t-label{font-family:'DM Mono',monospace;font-size:.62rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.tile.main .t-label{color:var(--green)}
+.t-value{font-family:'DM Mono',monospace;font-size:1.3rem;font-weight:500;margin-top:6px}
+.t-sub{font-size:.72rem;color:var(--muted);margin-top:4px;line-height:1.4}
+.table-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:3px}
+table{width:100%;border-collapse:collapse;min-width:560px}
+th,td{padding:9px 12px;text-align:right;border-bottom:1px solid var(--border);vertical-align:top}
+th:first-child,td:first-child{text-align:left}
+th{font-family:'DM Mono',monospace;font-size:.62rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);background:var(--cream);font-weight:400}
+td.num{font-family:'DM Mono',monospace;font-size:.8rem;white-space:nowrap}
+.row-label{font-size:.86rem}
+.row-note{font-size:.72rem;color:var(--muted);line-height:1.45;margin-top:3px;font-style:italic;font-weight:400}
+tr.group td{background:var(--cream);font-family:'DM Mono',monospace;font-size:.64rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);padding:6px 12px}
+tr.total td{font-weight:600;background:var(--paper)}
+tr.net td{background:var(--green-light);font-weight:600;color:var(--green);border-bottom:none}
+tr.net .row-note{color:var(--green)}
+.bar{display:flex;height:26px;border-radius:3px;overflow:hidden;border:1px solid var(--border);margin:12px 0}
+.bar div{height:100%}
+.legend{display:grid;grid-template-columns:1fr 1fr;gap:6px 18px}
+.legend-item{display:flex;align-items:center;gap:8px;font-size:.78rem}
+.swatch{width:11px;height:11px;border-radius:2px;flex-shrink:0}
+.pct{font-family:'DM Mono',monospace;font-size:.72rem;color:var(--muted);margin-left:auto}
+.warn-box{background:var(--accent-light);border:1px solid var(--accent);border-radius:3px;padding:10px 14px;font-size:.8rem;line-height:1.5;margin-bottom:16px}
+.warn-box ul{margin-left:18px}
+.disclaimer{font-size:.76rem;color:var(--muted);line-height:1.6}
+.disclaimer ul{margin:6px 0 0 18px}
+@media (max-width:640px){header{padding:12px 16px}main{padding:20px 14px 50px}.grid,.tiles,.legend{grid-template-columns:1fr}.other-row{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+<header>
+  <div class="header-left">
+    <h1>Take-Home Pay Estimator</h1>
+    <div class="subtitle">Educator Finance Tools · v1.0</div>
+  </div>
+  <div class="header-right">
+    <a class="back-link" href="index.html">← All Tools</a>
+  </div>
+</header>
+<main>
+  <div class="panel">
+    <div class="panel-header"><span class="step-badge">STEP 1</span><h2>Your Pay</h2></div>
+    <div class="panel-body">
+      <p class="note">Enter your <strong>gross salary</strong>: the yearly amount in your contract, before anything is taken out. This tool uses 2026 tax rules for Wisconsin educators.</p>
+      <div class="grid">
+        <div class="field"><label for="salary">Annual gross salary ($)</label><input type="number" id="salary" min="0" step="any" inputmode="decimal" placeholder="e.g. 52000"></div>
+        <div class="field"><label for="filing">Filing status</label>
+          <select id="filing"><option value="single">Single</option><option value="mfj">Married filing jointly (spouse income not included)</option></select></div>
+      </div>
+      <div class="field">
+        <label for="schedule">How you are paid</label>
+        <select id="schedule" onchange="onSched()">
+          <option value="12">Spread over 12 months, monthly (12 paychecks)</option>
+          <option value="24" selected>Spread over 12 months, twice a month (24 paychecks)</option>
+          <option value="26">Spread over 12 months, every two weeks (26 paychecks)</option>
+          <option value="10">School year only, 10 months, monthly (10 paychecks)</option>
+          <option value="20">School year only, 10 months, twice a month (20 paychecks)</option>
+          <option value="custom">Other (enter the number of paychecks)</option>
+        </select>
+        <div class="hint">Many districts let you choose 10-month or 12-month pay. Your yearly total is the same either way. Only the size of each paycheck changes.</div>
+      </div>
+      <div class="field" id="custom-wrap" hidden>
+        <label for="custom-checks">Paychecks per year</label>
+        <input type="number" id="custom-checks" min="1" max="52" step="1" inputmode="numeric" placeholder="e.g. 21">
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-header"><span class="step-badge">STEP 2</span><h2>Pension and Health Insurance</h2></div>
+    <div class="panel-body">
+      <div class="grid">
+        <div class="field">
+          <label for="wrs-rate">WRS employee contribution (% of salary)</label>
+          <input type="number" id="wrs-rate" min="0" max="25" step="0.01" inputmode="decimal" value="7.2">
+          <div class="hint">WRS is the Wisconsin Retirement System, the state pension. It is required. The 2026 employee rate is 7.2% (7.25% in 2027).</div>
+        </div>
+        <div class="field">
+          <label for="health">Health insurance, your share ($ per paycheck)</label>
+          <input type="number" id="health" min="0" step="any" inputmode="decimal" value="0">
+          <div class="hint">Find this on your pay stub. If your district takes 12 months of premiums from 10 paychecks, enter the larger per-check amount.</div>
+          <label class="check-row"><input type="checkbox" id="health-pretax" checked> Taken before taxes (most are)</label>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-header"><span class="step-badge">STEP 3</span><h2>Optional: FSA and Supplemental Retirement</h2></div>
+    <div class="panel-body">
+      <div class="grid">
+        <div class="field"><label for="hfsa">Health FSA ($ per year)</label><input type="number" id="hfsa" min="0" step="any" inputmode="decimal" value="0">
+          <div class="hint">Pre-tax money for medical costs. 2026 limit: $3,400. Many plans are use-it-or-lose-it.</div></div>
+        <div class="field"><label for="dcfsa">Dependent care FSA ($ per year)</label><input type="number" id="dcfsa" min="0" step="any" inputmode="decimal" value="0">
+          <div class="hint">Only for child care or dependent adult care. 2026 limit: $7,500.</div></div>
+      </div>
+      <hr class="divider">
+      <div class="sub-title">Supplemental retirement savings (403(b) or 457(b))</div>
+      <p class="hint" style="margin-bottom:14px">Optional accounts offered through many districts, in addition to WRS. <strong>Traditional</strong> comes out before income tax, lowering your tax bill now. <strong>Roth</strong> comes out after tax and can be withdrawn tax-free in retirement.</p>
+      <div class="grid">
+        <div class="field"><label for="supp-mode">Enter contribution as</label>
+          <select id="supp-mode" onchange="onSupp()"><option value="pct">% of gross salary</option><option value="flat">$ per paycheck</option></select></div>
+        <div class="field"><label for="supp-value" id="supp-label">Percent of salary (%)</label><input type="number" id="supp-value" min="0" step="any" inputmode="decimal" value="0"></div>
+      </div>
+      <div class="field"><label for="supp-type">Type</label>
+        <select id="supp-type"><option value="trad">Traditional (before tax)</option><option value="roth">Roth (after tax)</option></select>
+        <div class="hint">2026 limit: $24,500 per year for a 403(b), and a separate $24,500 for a 457(b).</div></div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-header"><span class="step-badge">STEP 4</span><h2>Optional: Other Deductions</h2></div>
+    <div class="panel-body">
+      <p class="note">Add anything else taken from your paycheck, such as dental, vision, union dues, or life insurance. Enter the amount per paycheck. Dental and vision are usually <strong>Before tax</strong>. Union dues and most life insurance are <strong>After tax</strong>. If unsure, choose After tax.</p>
+      <div id="other-list"></div>
+      <div style="margin-top:12px"><button class="btn-ghost" type="button" onclick="addOther()">+ Add a deduction</button></div>
+    </div>
+  </div>
+
+  <div>
+    <div class="btns">
+      <button class="btn-accent" type="button" onclick="calculate(true)">Estimate My Take-Home Pay</button>
+      <button class="btn-ghost" type="button" onclick="resetAll()">Reset</button>
+    </div>
+    <div class="error-line" id="calc-error"></div>
+  </div>
+
+  <div class="panel" id="results" hidden>
+    <div class="panel-header"><span class="step-badge">RESULT</span><h2>Your Estimate</h2></div>
+    <div class="panel-body" id="results-body"></div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-header"><h2>About This Estimate</h2></div>
+    <div class="panel-body disclaimer">
+      This is a planning estimate, not tax advice. It uses 2026 federal and Wisconsin rules and your yearly totals, so actual withholding will differ depending on your W-4 and WT-4. It does not include:
+      <ul>
+        <li>Tax credits (child tax credit, earned income credit, saver’s credit, and others)</li>
+        <li>Itemized deductions, or income other than this salary (a spouse’s pay, a side job)</li>
+        <li>Student loan interest, HSA contributions, stipends, or extra-duty pay</li>
+      </ul>
+      <p style="margin-top:8px">Your pay stub is the final word. Compare this estimate against a recent stub.</p>
+    </div>
+  </div>
+</main>
+
+<script>
+/* 2026 figures: IRS inflation adjustments, WI DOR Form 1-ES, WI ETF WRS rates. Update yearly. */
+const TAX={
+  federal:{std:{single:16100,mfj:32200},brackets:{
+    single:[[12400,.10],[50400,.12],[105700,.22],[201750,.24],[256225,.32],[640600,.35],[Infinity,.37]],
+    mfj:[[24800,.10],[100800,.12],[211400,.22],[403550,.24],[512450,.32],[768700,.35],[Infinity,.37]]}},
+  wi:{exemption:{single:700,mfj:1400},brackets:{
+    single:[[15110,.035],[51950,.044],[332720,.053],[Infinity,.0765]],
+    mfj:[[20150,.035],[69260,.044],[443630,.053],[Infinity,.0765]]},
+    std(s,i){
+      if(s==='single'){if(i<=20119)return 13960;if(i<=136453)return Math.max(0,13960-.12*(i-20120));return 0}
+      if(i<=29039)return 25840;if(i<=159690)return Math.max(0,25840-.19778*(i-29040));return 0}},
+  fica:{ss:.062,base:184500,med:.0145,addl:.009,addlAt:{single:200000,mfj:250000}},
+  lim:{hfsa:3400,dcfsa:7500,defer:24500},wrs:7.2
+};
+let done=false;
+const $=id=>document.getElementById(id);
+const f0=n=>n.toLocaleString('en-US',{style:'currency',currency:'USD',maximumFractionDigits:0});
+const f2=n=>n.toLocaleString('en-US',{style:'currency',currency:'USD',minimumFractionDigits:2,maximumFractionDigits:2});
+const p1=n=>(n*100).toFixed(1)+'%';
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const num=id=>{const v=parseFloat($(id).value);return isFinite(v)&&v>0?v:0};
+function btax(inc,br){let t=0,prev=0;for(const[u,r]of br){if(inc>prev)t+=(Math.min(inc,u)-prev)*r;prev=u;if(inc<=u)break}return t}
+function checks(){const v=$('schedule').value;if(v==='custom'){const n=parseInt($('custom-checks').value,10);return n>=1&&n<=52?n:0}return parseInt(v,10)}
+function onSched(){$('custom-wrap').hidden=$('schedule').value!=='custom'}
+function onSupp(){$('supp-label').textContent=$('supp-mode').value==='pct'?'Percent of salary (%)':'Dollars per paycheck ($)'}
+function addOther(){
+  const r=document.createElement('div');r.className='other-row';
+  r.innerHTML='<input type="text" class="o-label" placeholder="Name (e.g. Dental)"><input type="number" class="o-amt" min="0" step="any" inputmode="decimal" placeholder="$ per paycheck"><select class="o-type"><option value="pre">Before tax</option><option value="post">After tax</option></select><button class="btn-ghost" type="button" onclick="this.closest(\'.other-row\').remove();if(done)calculate(false)">Remove</button>';
+  $('other-list').appendChild(r);
+}
+function resetAll(){
+  ['salary','custom-checks'].forEach(i=>$(i).value='');
+  $('filing').value='single';$('schedule').value='24';$('wrs-rate').value=TAX.wrs;
+  ['health','hfsa','dcfsa','supp-value'].forEach(i=>$(i).value=0);
+  $('health-pretax').checked=true;$('supp-mode').value='pct';$('supp-type').value='trad';
+  $('other-list').innerHTML='';$('calc-error').textContent='';$('results').hidden=true;done=false;onSched();onSupp();
+}
+function calculate(btn){
+  const err=$('calc-error');err.textContent='';
+  const fail=m=>{err.textContent=m;$('results').hidden=true};
+  const gross=num('salary');
+  if(!(gross>0))return fail('Enter your annual salary in Step 1 to see an estimate.');
+  const n=checks();
+  if(!n)return fail('Enter how many paychecks you receive per year (1 to 52).');
+  const st=$('filing').value,wrsRate=num('wrs-rate'),health=num('health')*n,hPre=$('health-pretax').checked,hfsa=num('hfsa'),dcfsa=num('dcfsa');
+  const sAnn=$('supp-mode').value==='pct'?gross*num('supp-value')/100:num('supp-value')*n;
+  const trad=$('supp-type').value==='trad'?sAnn:0,roth=$('supp-type').value==='roth'?sAnn:0;
+  let oPre=0,oPost=0;
+  document.querySelectorAll('.other-row').forEach(r=>{const a=(parseFloat(r.querySelector('.o-amt').value)||0)*n;if(a>0){if(r.querySelector('.o-type').value==='pre')oPre+=a;else oPost+=a}});
+  const wrs=gross*wrsRate/100;
+  const s125=(hPre?health:0)+hfsa+dcfsa+oPre, pre=s125+wrs+trad;
+  if(pre>=gross)return fail('Your before-tax deductions exceed your salary. Check that premiums and deductions are entered per paycheck.');
+  const fw=Math.max(0,gross-s125);
+  const ss=Math.min(fw,TAX.fica.base)*TAX.fica.ss;
+  const med=fw*TAX.fica.med+Math.max(0,fw-TAX.fica.addlAt[st])*TAX.fica.addl;
+  const agi=gross-pre;
+  const fed=btax(Math.max(0,agi-TAX.federal.std[st]),TAX.federal.brackets[st]);
+  const wi=btax(Math.max(0,agi-TAX.wi.std(st,agi)-TAX.wi.exemption[st]),TAX.wi.brackets[st]);
+  const taxes=fed+wi+ss+med;
+  const out=taxes+wrs+sAnn+health+hfsa+dcfsa+oPre+oPost, net=gross-out;
+  const w=[];
+  if(hfsa>TAX.lim.hfsa)w.push('Health FSA is above the 2026 IRS limit of '+f0(TAX.lim.hfsa)+'.');
+  if(dcfsa>TAX.lim.dcfsa)w.push('Dependent care FSA is above the 2026 IRS limit of '+f0(TAX.lim.dcfsa)+'.');
+  if(sAnn>TAX.lim.defer)w.push('Supplemental retirement is above the '+f0(TAX.lim.defer)+' limit for a single 403(b) or 457(b).');
+  if(wrsRate>12)w.push('The WRS rate looks high. The 2026 employee rate for teachers is 7.2%.');
+  if(net<=0)w.push('These deductions leave no take-home pay. Check that amounts are entered per paycheck, not per year.');
+  render({gross,n,st,wrs,sAnn,roth,health,hPre,hfsa,dcfsa,oPre,oPost,ss,med,fed,wi,taxes,out,net,w});
+  done=true;$('results').hidden=false;
+  if(btn)$('results').scrollIntoView({behavior:'smooth',block:'start'});
+}
+function render(r){
+  const pc=v=>v/r.n,pm=v=>v/12;
+  const row=(l,a,note,c)=>'<tr'+(c?' class="'+c+'"':'')+'><td><div class="row-label">'+l+'</div>'+(note?'<div class="row-note">'+note+'</div>':'')+'</td><td class="num">'+f0(a)+'</td><td class="num">'+f2(pc(a))+'</td><td class="num">'+f2(pm(a))+'</td></tr>';
+  const grp=t=>'<tr class="group"><td colspan="4">'+t+'</td></tr>';
+  let h='';
+  if(r.w.length)h+='<div class="warn-box"><strong>Check these:</strong><ul>'+r.w.map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul></div>';
+  h+='<div class="tiles"><div class="tile main"><div class="t-label">Take-home per paycheck</div><div class="t-value">'+f2(pc(r.net))+'</div><div class="t-sub">Based on '+r.n+' paychecks per year</div></div>'+
+    '<div class="tile"><div class="t-label">Take-home per year</div><div class="t-value">'+f0(r.net)+'</div><div class="t-sub">About '+f0(pm(r.net))+' per month on average</div></div>'+
+    '<div class="tile"><div class="t-label">Effective tax rate</div><div class="t-value">'+p1(r.taxes/r.gross)+'</div><div class="t-sub">Federal, Wisconsin, Social Security, and Medicare as a share of gross salary</div></div></div>';
+  h+='<div class="table-wrap"><table><thead><tr><th>Item</th><th>Per year</th><th>Per paycheck</th><th>Avg per month</th></tr></thead><tbody>';
+  h+=row('Gross salary',r.gross,'Your pay before anything is taken out.','total');
+  h+=grp('Taxes');
+  h+=row('Federal income tax',r.fed,'2026 brackets and the '+f0(TAX.federal.std[r.st])+' standard deduction. Before-tax items lower the amount taxed. No credits included.');
+  h+=row('Wisconsin income tax',r.wi,'Wisconsin has its own standard deduction, which shrinks as income rises, plus a '+f0(TAX.wi.exemption[r.st])+' exemption.');
+  h+=row('Social Security (6.2%)',r.ss,'Charged on pay up to '+f0(TAX.fica.base)+'. WRS and 403(b) do not reduce it. Health premiums and FSAs do.');
+  h+=row('Medicare (1.45%)',r.med,'Social Security and Medicare together are called FICA.');
+  h+=grp('Retirement savings');
+  h+=row('WRS pension contribution ('+(r.wrs/r.gross*100).toFixed(2).replace(/\.?0+$/,'')+'%)',r.wrs,'Required. Taken before income tax, but FICA still applies. This is your money, building toward your pension.');
+  if(r.sAnn>0)h+=row(r.roth>0?'Supplemental retirement (Roth)':'Supplemental retirement (Traditional)',r.sAnn,r.roth>0?'Taxed now, tax-free in retirement. Does not lower today’s taxes.':'Comes out before income tax, lowering today’s tax bill. Taxed when withdrawn.');
+  const b=(r.health>0?row('Health insurance (your share)',r.health,r.hPre?'Taken before taxes, lowering income tax and FICA.':'Entered as after-tax, so it does not lower your taxes.'):'')+
+    (r.hfsa>0?row('Health FSA',r.hfsa,'Pre-tax. Lowers income tax and FICA.'):'')+
+    (r.dcfsa>0?row('Dependent care FSA',r.dcfsa,'Pre-tax. Lowers income tax and FICA.'):'')+
+    (r.oPre>0?row('Other deductions (before tax)',r.oPre,'Lowers income tax and FICA.'):'')+
+    (r.oPost>0?row('Other deductions (after tax)',r.oPost,'Does not lower your taxes.'):'');
+  if(b)h+=grp('Benefits and other deductions')+b;
+  h+=row('Total taken out',r.out,'Taxes, retirement savings, and benefits combined.','total');
+  h+=row('Estimated take-home pay',r.net,'What lands in your bank account.','net');
+  h+='</tbody></table></div>';
+  const segs=[['Take-home pay',r.net,'#2d5a3d'],['Federal income tax',r.fed,'#8b1a1a'],['Wisconsin income tax',r.wi,'#b24a4a'],['Social Security',r.ss,'#d08a8a'],['Medicare',r.med,'#e6bcbc'],['WRS pension',r.wrs,'#5a5a7a'],['Supplemental retirement',r.sAnn,'#8a8aa8'],['Health insurance',r.health,'#7a7262'],['FSA',r.hfsa+r.dcfsa,'#a89f8a'],['Other deductions',r.oPre+r.oPost,'#c4bda8']].filter(s=>s[1]>0.5);
+  h+='<div class="sub-title" style="margin-top:24px">Where each dollar of your salary goes</div><div class="bar" role="img" aria-label="Stacked bar of how gross salary is divided">'+
+    segs.map(s=>'<div style="width:'+Math.max(0,s[1]/r.gross*100).toFixed(3)+'%;background:'+s[2]+'" title="'+esc(s[0])+': '+f0(s[1])+'"></div>').join('')+'</div><div class="legend">'+
+    segs.map(s=>'<div class="legend-item"><span class="swatch" style="background:'+s[2]+'"></span><span>'+esc(s[0])+'</span><span class="pct">'+(s[1]/r.gross*100).toFixed(1)+'%</span></div>').join('')+'</div>';
+  h+='<p class="hint" style="margin-top:16px">WRS and supplemental retirement are savings, not lost money. Take-home plus retirement savings is '+p1((r.net+r.wrs+r.sAnn)/r.gross)+' of your gross salary.</p>';
+  $('results-body').innerHTML=h;
+}
+document.addEventListener('input',()=>{if(done)calculate(false)});
+document.addEventListener('change',()=>{if(done)calculate(false)});
+onSched();onSupp();
+</script>
+</body>
+</html>
