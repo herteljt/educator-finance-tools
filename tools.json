@@ -67,6 +67,20 @@
     ]
   },
   {
+    "file": "tool-take-home-pay-estimator.html",
+    "name": "Take-Home Pay Estimator",
+    "description": "Enter your salary and see estimated federal and Wisconsin taxes, FICA, WRS, health insurance, and more, per year, month, and paycheck.",
+    "icon": "\ud83d\udcb5",
+    "tags": [
+      "paycheck",
+      "take-home pay",
+      "taxes",
+      "WRS",
+      "salary",
+      "benefits"
+    ]
+  },
+  {
     "file": "tool-wrs-retirement-estimator.html",
     "name": "WRS Retirement Estimator",
     "description": "Estimate Wisconsin Retirement System monthly benefits for General, Teacher, and Educational Support employees across multiple payment options and retirement ages.",
